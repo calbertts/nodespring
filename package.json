@@ -1,0 +1,28 @@
+{
+  "name": "nodespring",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-stage-0": "^6.3.13"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.4.5",
+    "babel-core": "^6.4.5",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-preset-es2015": "^6.3.13"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "babel -w src/ -d modules/ -s & nodemon app.js",
+    "start__": "nodemon app.js"
+  },
+  "keywords": [
+    "babel",
+    "setup",
+    "setup tutorial"
+  ],
+  "author": "calbertts (calbertts@gmail.com)",
+  "license": "GNU GPL v3.0"
+}
