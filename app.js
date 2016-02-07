@@ -1,17 +1,16 @@
-const http = require('http')
+var express = require('express');
+var app = express();
 
-const hostname = '127.0.0.1';
-const port = 5000;
+const port = 5000
 
-var MyClass = require('./modules/MyClass').default
+var ModuleContainer = require('./compiled/nodespring/core/moduleContainer').ModuleContainer
+ModuleContainer.init(app)
+ModuleContainer.loadControllers()
 
-http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' })
+app.get('/', function (req, res) {
+  res.send('Hello World!');
+});
 
-  var myClassInstance = new MyClass();
-  var value = myClassInstance.getNewsById("1")
-
-  res.end(value);
-}).listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
-})
+app.listen(port, function () {
+  console.log('Server running at http://localhost:5000');
+});

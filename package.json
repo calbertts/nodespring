@@ -4,8 +4,10 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "babel": "^6.3.26",
     "babel-preset-es2015": "^6.3.13",
-    "babel-preset-stage-0": "^6.3.13"
+    "babel-preset-stage-0": "^6.3.13",
+    "express": "^4.13.4"
   },
   "devDependencies": {
     "babel-cli": "^6.4.5",
@@ -15,8 +17,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "babel -w src/ -d modules/ -s & nodemon app.js",
-    "start__": "nodemon app.js"
+    "compile": "babel -w src/ -d compiled/ -s"
   },
   "keywords": [
     "babel",
