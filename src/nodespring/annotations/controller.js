@@ -4,7 +4,7 @@ let isClass = (arg) => {
   return arg && arg.constructor === Function
 }
 
-export default function Controller() {
+export default function controller() {
 
   let options = {}
 
