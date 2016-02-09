@@ -5,25 +5,25 @@
  *
  */
 
-import controller from '../nodespring/annotations/controller'
-import {get, post} from '../nodespring/annotations/httpMethods'
+import {Controller} from '../nodespring/decorators/controller'
+import {Get, Post} from '../nodespring/decorators/httpMethods'
 
 
-@controller({path: 'users'})
-export class UsersController {
+@Controller({path: 'users'})
+export default class UsersController {
 
   anotherMethod() {
     return "message two"
   }
 
-  @get({contentType: 'application/json'})
+  @Get({contentType: 'application/json'})
   other(user) {
     return {
       message: this.anotherMethod()
     }
   }
 
-  @get
+  @Get
   test(user) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {

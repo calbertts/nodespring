@@ -5,20 +5,27 @@
  *
  */
 
-import controller from '../nodespring/annotations/controller'
-import {get, post} from '../nodespring/annotations/httpMethods'
+import {Controller} from '../nodespring/decorators/controller'
+import {Get, Post} from '../nodespring/decorators/httpMethods'
+import {Inject} from '../nodespring/decorators/dependencyManagement'
+
+import SuperType from './interfaces/SuperType'
 
 
-@controller
+@Controller
 export class MyClass {
 
-  @post({contentType: 'application/json'})
+  @Inject(SuperType)
+  users;
+
+  @Post({contentType: 'application/json'})
   anotherMethod() {
     return {ok: "no"}
   }
 
-  @get
+  @Get
   getNewsById(id, name) {
+    console.log('injected value!!!! => ', this.users)
     console.log('Values => ', id, name)
     return "I got it: " + JSON.stringify(this.anotherMethod())
   }

@@ -3,6 +3,7 @@ var path_module = require('path')
 
 var app
 var moduleContainer = {}
+var injectedModules = {}
 
 /**
  * Method to get the arguments' names
@@ -138,5 +139,22 @@ exports.ModuleContainer = {
       httpMethod: httpMethod,
       contentType: contentType
     })
+  },
+
+  addInterface: (type, impl) => {
+    injectedModules[type.name] = null
+
+
+    var val = Object.observe(injectedModules, (changes) => {
+      console.log('CHANGES', changes)
+    })
+
+    console.log('val', val)
+
+    //console.log(injectedModules)
+  },
+
+  addImplementation: (type, impl) => {
+    injectedModules[type.name] = impl
   }
 }

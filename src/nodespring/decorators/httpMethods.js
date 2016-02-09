@@ -6,7 +6,7 @@
 
 import {ModuleContainer} from '../core/moduleContainer'
 
-export function get() {
+export function Get() {
 
   let options = {
     contentType: 'text/html'
@@ -30,7 +30,7 @@ export function get() {
   }
 }
 
-export function post() {
+export function Post() {
 
   let options = {
     contentType: 'text/html'
