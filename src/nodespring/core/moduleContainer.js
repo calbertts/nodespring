@@ -5,6 +5,9 @@ var app
 var moduleContainer = {}
 var injectedModules = {}
 
+var promisedModules = {}
+var promisedImplementations = {}
+
 /**
  * Method to get the arguments' names
  *
@@ -142,19 +145,40 @@ exports.ModuleContainer = {
   },
 
   addInterface: (type, impl) => {
-    injectedModules[type.name] = null
+    injectedModules[type.name] = impl
 
+    promisedImplementations[type.name] = new Promise((resolve, reject) => {
+      Object.observe(injectedModules, (changes) => {
+        let change = changes[0]
 
-    var val = Object.observe(injectedModules, (changes) => {
-      console.log('CHANGES', changes)
+        if(change.type === 'update') {
+          resolve(change.object[type.name])
+        }
+      })
     })
-
-    console.log('val', val)
-
-    //console.log(injectedModules)
   },
 
   addImplementation: (type, impl) => {
     injectedModules[type.name] = impl
+  },
+
+  getModuleImpl: (type) => {
+    return promisedImplementations[type.name]
+  },
+
+  getModuleInstance: (moduleName) => {
+    if(!promisedModules[moduleName]) {
+      promisedModules[moduleName] = new Promise((resolve, reject) => {
+        Object.observe(moduleContainer, (changes) => {
+          let change = changes[0]
+
+          if (change.type === 'add' && change.name === moduleName) {
+            resolve(moduleContainer[moduleName].moduleInstance)
+          }
+        })
+      })
+    }
+
+    return promisedModules[moduleName]
   }
 }

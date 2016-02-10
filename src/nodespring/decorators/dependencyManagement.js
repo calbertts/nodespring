@@ -8,42 +8,30 @@ import {ModuleContainer} from '../core/moduleContainer'
 
 export function Inject(typeToInject) {
 
-  console.log('Type to inject => ', typeToInject)
-
   return (target, property, descriptor) => {
-    descriptor.initializer = () => {return {ok: 1}}
-    console.log('inject2', target, property, descriptor)
+    descriptor.configurable = false
+    descriptor.writable = true
+    descriptor.enumerable = false
+
+    let promiseModuleInstanceLoad = ModuleContainer.getModuleInstance(target.constructor.name)
+    let promiseImplLoad = ModuleContainer.getModuleImpl(typeToInject)
+
+    promiseModuleInstanceLoad.then((moduleInstance) => {
+      promiseImplLoad.then((impl) => {
+        moduleInstance[property] = new impl()
+      })
+    })
   }
-
-  /*let options = {
-    contentType: 'text/html'
-  }
-
-  let addRoute = (target, property, descriptor) => {
-    ModuleContainer.addRoute(target, property, 'get', options.contentType)
-  }
-
-  if(arguments.length <= 1) {
-    options = arguments[0] || {}
-    options.contentType = !options.contentType ? 'text/html' : options.contentType
-
-    return addRoute
-  } else {
-    let target = arguments[0]
-    let property = arguments[1]
-    let descriptor = arguments[2]
-
-    addRoute(target, property, descriptor)
-  }*/
 }
 
 export function Interface(type) {
+  // Validation stuff
+
   ModuleContainer.addInterface(type, null)
 }
 
 export function Implements(type) {
   return (target, property, descriptor) => {
-    //console.log('implements2', target, property, descriptor)
     ModuleContainer.addImplementation(type, target)
   }
 }

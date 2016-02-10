@@ -20,12 +20,12 @@ export class MyClass {
 
   @Post({contentType: 'application/json'})
   anotherMethod() {
-    return {ok: "no"}
+    return {ok: "yes"}
   }
 
   @Get
   getNewsById(id, name) {
-    console.log('injected value!!!! => ', this.users)
+    console.log('injected value!!!! => ', this.users.methodOne())
     console.log('Values => ', id, name)
     return "I got it: " + JSON.stringify(this.anotherMethod())
   }

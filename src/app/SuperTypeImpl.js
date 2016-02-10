@@ -6,7 +6,7 @@ import SuperType from '../app/interfaces/SuperType'
 export default class SuperTypeImpl {
 
   methodOne(id, isOK) {
-    return 'value'
+    return 'value from INJECTED MODULE!!!'
   }
 
   methodTwo(name, type) {
