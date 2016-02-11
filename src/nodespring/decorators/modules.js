@@ -9,7 +9,7 @@ export function Controller() {
   let options = {}
 
   let addModule = (target) => {
-    ModuleContainer.addModule(target, options.path || target.name)
+    ModuleContainer.addController(target, options.path || target.name)
   }
 
   if(arguments.length === 0 || (arguments.length === 1 && !isClass(arguments[0]))) {
@@ -20,7 +20,8 @@ export function Controller() {
 
     addModule(target)
   }
+}
 
-  //var propertyNames = Object.getOwnPropertyNames(classDef.prototype);
-  //console.log('CONTROLLER:', propertyNames)
+export function Component(target) {
+  ModuleContainer.addModule(target)
 }

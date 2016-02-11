@@ -2,8 +2,10 @@ var fs = require('fs')
 var path_module = require('path')
 
 var app
-var moduleContainer = {}
+global.moduleContainer = {}
+var moduleContainer = global.moduleContainer
 var injectedModules = {}
+var injectedModulesInstances = {}
 
 var promisedModules = {}
 var promisedImplementations = {}
@@ -69,7 +71,19 @@ exports.ModuleContainer = {
     return moduleContainer
   },
 
-  addModule(moduleDef, path) {
+  addModule(moduleDef) {
+    let moduleName = moduleDef.name
+
+    if(!moduleContainer[moduleName]) {
+      moduleContainer[moduleName] = {
+        methods: []
+      }
+    }
+
+    moduleContainer[moduleName].moduleInstance = new moduleDef()
+  },
+
+  addController(moduleDef, path) {
     let moduleName = moduleDef.name
 
     if(!moduleContainer[moduleName]) {
@@ -92,7 +106,7 @@ exports.ModuleContainer = {
       app[methodInfo.httpMethod](`/${path}/${methodInfo.methodName}`, (req, res) => {
         let fn = moduleInfo.moduleInstance[methodInfo.methodName]
 
-        var params = getArgs(fn).map((item, index) => {
+        let params = getArgs(fn).map((item, index) => {
           let clientData = req.body || req.query
           return clientData[item] || (clientData[item + '[]'] instanceof Array ? clientData[item + '[]'] : [clientData[item + '[]']])
         })
@@ -145,21 +159,53 @@ exports.ModuleContainer = {
   },
 
   addInterface: (type, impl) => {
-    injectedModules[type.name] = impl
+    if(!injectedModules[type.name]) {
+      injectedModules[type.name] = impl
 
-    promisedImplementations[type.name] = new Promise((resolve, reject) => {
-      Object.observe(injectedModules, (changes) => {
-        let change = changes[0]
+      promisedImplementations[type.name] = new Promise((resolve, reject) => {
+        Object.observe(injectedModules, (changes) => {
+          let change = changes[0]
 
-        if(change.type === 'update') {
-          resolve(change.object[type.name])
-        }
+          if(change.type === 'update' && change.name === type.name) {
+            if(!injectedModulesInstances[type.name]) {
+              injectedModulesInstances[type.name] = new change.object[type.name]()
+            }
+            resolve(injectedModulesInstances[type.name])
+          }
+        })
       })
-    })
+    }
   },
 
   addImplementation: (type, impl) => {
-    injectedModules[type.name] = impl
+    if(!injectedModules[type.name]) {
+      let interfaceMethods = Object.getOwnPropertyNames(type.prototype);
+      let implementationMethods = Object.getOwnPropertyNames(impl.prototype);
+
+      interfaceMethods.filter((methodName) => {return methodName !== 'constructor'}).forEach(methodName => {
+        let isMethodImplemented = implementationMethods.indexOf(methodName) >= 0
+
+        if(!isMethodImplemented) {
+          console.error(`NodeSpring Error:\nThe method "${methodName}" declared in ${type.name} is not implemented in ${impl.name}\n`)
+        } else {
+          let interfaceInstance = new type()
+          let interfaceMethodParams = interfaceInstance[methodName]().params
+
+          for(let param in interfaceMethodParams) {
+            let implMethodParams = getArgs(impl.prototype[methodName])
+            let isParamPresent = implMethodParams.indexOf(param) >= 0
+
+            if(!isParamPresent) {
+              console.error(`NodeSpring Error:\nThe param "${param}" declared in ${type.name}.${methodName}(...) is not present in ${impl.name}.${methodName}(...)\n`)
+            }
+          }
+        }
+      })
+
+      injectedModules[type.name] = impl
+    } else {
+      console.error(`NodeSpring Error: \nThere are more than one implementations associated with the Interface: ${type.name}\nThe current implementation is: ${injectedModules[type.name].name}\nPlease review the class: ${impl.name}, the Interfaces must only have one implementation\n`)
+    }
   },
 
   getModuleImpl: (type) => {

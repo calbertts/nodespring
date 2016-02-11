@@ -9,24 +9,25 @@ import {ModuleContainer} from '../core/moduleContainer'
 export function Inject(typeToInject) {
 
   return (target, property, descriptor) => {
-    descriptor.configurable = false
     descriptor.writable = true
-    descriptor.enumerable = false
 
     let promiseModuleInstanceLoad = ModuleContainer.getModuleInstance(target.constructor.name)
     let promiseImplLoad = ModuleContainer.getModuleImpl(typeToInject)
 
     promiseModuleInstanceLoad.then((moduleInstance) => {
       promiseImplLoad.then((impl) => {
-        moduleInstance[property] = new impl()
+        moduleInstance[property] = impl
+
+        console.log(`Dependency injected => ${typeToInject.name} into ${target.constructor.name}`)
+
+        // Avoid redefine the injected instance
+        Object.defineProperty(moduleInstance, property, {writable: false})
       })
     })
   }
 }
 
 export function Interface(type) {
-  // Validation stuff
-
   ModuleContainer.addInterface(type, null)
 }
 
