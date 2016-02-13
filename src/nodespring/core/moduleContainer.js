@@ -1,44 +1,10 @@
 var fs = require('fs')
 var path_module = require('path')
-var util = require('util');
+var NodeSpringUtil = require('./nodeSpringUtil').default
 
-var logFile = fs.createWriteStream('log.txt', { flags: 'w' });
-var logStdout = process.stdout;
 
-console.log = function () {
-  logFile.write(util.format.apply(null, arguments) + '\n');
-  logStdout.write(util.format.apply(null, arguments) + '\n');
-}
-console.error = console.log;
-
-var app
-
-// There are two kind of instances
-global.controllersContainer = {}
-global.modulesContainer = {}
-
-/**
- * Method to get the arguments' names
- *
- * @param func
- * @returns {Array.<String>}
- */
-var getArgs = function(func) {
-
-  // First match everything inside the function argument parens.
-  var args = func.toString().match(/function\s.*?\(([^)]*)\)/)[1]
-
-  // Split the arguments string into an array comma delimited.
-  return args.split(',').map(function(arg) {
-
-    // Ensure no inline comments are parsed and trim the whitespace.
-    return arg.replace(/\/\*.*\*\//, '').trim()
-  }).filter(function(arg) {
-
-    // Ensure no undefined values are added.
-    return arg
-  })
-}
+// The unique module container
+var modulesContainer = {}
 
 
 var validateImpl = (type, impl) => {
@@ -52,14 +18,14 @@ var validateImpl = (type, impl) => {
       let isMethodImplemented = implementationMethods.indexOf(methodName) >= 0
 
       if (!isMethodImplemented) {
-        console.error(`NodeSpring Error:\nThe method "${methodName}" declared in ${type.name} is not implemented in ${impl.name}\n`)
+        throw new Error(`NodeSpring Error:\nThe method "${methodName}" declared in ${type.name} is not implemented in ${impl.name}\n`)
         return false
       } else {
         let interfaceInstance = new type()
         let interfaceMethodParams = interfaceInstance[methodName]().params
 
         for (let param in interfaceMethodParams) {
-          let implMethodParams = getArgs(impl.prototype[methodName])
+          let implMethodParams = NodeSpringUtil.getArgs(impl.prototype[methodName])
           let isParamPresent = implMethodParams.indexOf(param) >= 0
 
           if (!isParamPresent) {
@@ -79,8 +45,11 @@ var validateImpl = (type, impl) => {
 
 var ModuleContainer = {
 
-  init: (_app) => {
-    app = _app
+  expressApp: null,
+
+  init: (app) => {
+    NodeSpringUtil.configureLoggingOut()
+    ModuleContainer.expressApp = app
   },
 
   loadModules: () => {
@@ -132,10 +101,10 @@ var ModuleContainer = {
 
       publishedURLs.push(`/${path}/${methodInfo.methodName}`)
 
-      app[methodInfo.httpMethod](`/${path}/${methodInfo.methodName}`, (req, res) => {
+      ModuleContainer.expressApp[methodInfo.httpMethod](`/${path}/${methodInfo.methodName}`, (req, res) => {
         let fn = moduleInfo.impl[methodInfo.methodName]
 
-        let params = getArgs(fn).map((item, index) => {
+        let params = NodeSpringUtil.getArgs(fn).map((item, index) => {
           let clientData = req.body || req.query
           return clientData[item] || (clientData[item + '[]'] instanceof Array ? clientData[item + '[]'] : [clientData[item + '[]']])
         })
@@ -253,12 +222,15 @@ var ModuleContainer = {
   },
 
   addImplementation: (type, impl) => {
-    if(!modulesContainer[type].impl) {
-      ModuleContainer.addInterface(type)
+    validateImpl(type, impl)
 
-      modulesContainer[type].impl = new impl()
+    if(!modulesContainer[type.name].impl) {
+      ModuleContainer.addInterface(type.name)
+
+      modulesContainer[type.name].impl = new impl()
     }
   }
 }
+
 
 exports.ModuleContainer = ModuleContainer
