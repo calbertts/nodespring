@@ -1,14 +1,21 @@
 var fs = require('fs')
 var path_module = require('path')
+var util = require('util');
+
+var logFile = fs.createWriteStream('log.txt', { flags: 'w' });
+var logStdout = process.stdout;
+
+console.log = function () {
+  logFile.write(util.format.apply(null, arguments) + '\n');
+  logStdout.write(util.format.apply(null, arguments) + '\n');
+}
+console.error = console.log;
 
 var app
-global.moduleContainer = {}
-var moduleContainer = global.moduleContainer
-var injectedModules = {}
-var injectedModulesInstances = {}
 
-var promisedModules = {}
-var promisedImplementations = {}
+// There are two kind of instances
+global.controllersContainer = {}
+global.modulesContainer = {}
 
 /**
  * Method to get the arguments' names
@@ -33,13 +40,50 @@ var getArgs = function(func) {
   })
 }
 
-exports.ModuleContainer = {
+
+var validateImpl = (type, impl) => {
+  if(!modulesContainer[type.name].impl) {
+    let interfaceMethods = Object.getOwnPropertyNames(type.prototype);
+    let implementationMethods = Object.getOwnPropertyNames(impl.prototype);
+
+    interfaceMethods.filter((methodName) => {
+      return methodName !== 'constructor'
+    }).forEach(methodName => {
+      let isMethodImplemented = implementationMethods.indexOf(methodName) >= 0
+
+      if (!isMethodImplemented) {
+        console.error(`NodeSpring Error:\nThe method "${methodName}" declared in ${type.name} is not implemented in ${impl.name}\n`)
+        return false
+      } else {
+        let interfaceInstance = new type()
+        let interfaceMethodParams = interfaceInstance[methodName]().params
+
+        for (let param in interfaceMethodParams) {
+          let implMethodParams = getArgs(impl.prototype[methodName])
+          let isParamPresent = implMethodParams.indexOf(param) >= 0
+
+          if (!isParamPresent) {
+            console.error(`NodeSpring Error:\nThe param "${param}" declared in ${type.name}.${methodName}(...) is not present in ${impl.name}.${methodName}(...)\n`)
+            return false
+          }
+        }
+      }
+    })
+
+    return true
+  } else {
+    console.error(`NodeSpring Error: \nThere are more than one implementations associated with the Interface: ${type.name}\nThe current implementation is: ${injectedModules[type.name].name}\nPlease review the class: ${impl.name}, the Interfaces must only have one implementation\n`)
+    return false
+  }
+}
+
+var ModuleContainer = {
 
   init: (_app) => {
     app = _app
   },
 
-  loadControllers: () => {
+  loadModules: () => {
     let load = (path) => {
       fs.lstat(path, (err, stat) => {
         if (stat.isDirectory()) {
@@ -55,8 +99,8 @@ exports.ModuleContainer = {
             let compiledPath = path.replace('src', 'compiled')
             let moduleName = path_module.basename(compiledPath, '.js')
 
-            console.log("Loading module => ", moduleName, ', From => ', compiledPath)
-            let module = require(compiledPath).default
+            //console.log("Loading module => ", moduleName, ', From => ', compiledPath)
+            require(compiledPath).default
           }
         }
       })
@@ -67,35 +111,20 @@ exports.ModuleContainer = {
     load(baseDir)
   },
 
-  getModuleContainer: () => {
-    return moduleContainer
-  },
-
-  addModule(moduleDef) {
-    let moduleName = moduleDef.name
-
-    if(!moduleContainer[moduleName]) {
-      moduleContainer[moduleName] = {
-        methods: []
-      }
-    }
-
-    moduleContainer[moduleName].moduleInstance = new moduleDef()
-  },
-
   addController(moduleDef, path) {
     let moduleName = moduleDef.name
 
-    if(!moduleContainer[moduleName]) {
-      moduleContainer[moduleName] = {
-        methods: []
+    if(!modulesContainer[moduleName]) {
+      modulesContainer[moduleName] = {
+        methods: [],
+        dependents: {}
       }
     }
 
-    moduleContainer[moduleName].path = path
-    moduleContainer[moduleName].moduleInstance = new moduleDef()
+    modulesContainer[moduleName].path = path
+    modulesContainer[moduleName].impl = new moduleDef()
 
-    let moduleInfo = moduleContainer[moduleName]
+    let moduleInfo = modulesContainer[moduleName]
     let publishedURLs = []
 
     for(let i=0; i<moduleInfo.methods.length; i++) {
@@ -104,7 +133,7 @@ exports.ModuleContainer = {
       publishedURLs.push(`/${path}/${methodInfo.methodName}`)
 
       app[methodInfo.httpMethod](`/${path}/${methodInfo.methodName}`, (req, res) => {
-        let fn = moduleInfo.moduleInstance[methodInfo.methodName]
+        let fn = moduleInfo.impl[methodInfo.methodName]
 
         let params = getArgs(fn).map((item, index) => {
           let clientData = req.body || req.query
@@ -122,7 +151,7 @@ exports.ModuleContainer = {
         }
 
         // Getting method response
-        let value = fn.apply(moduleInfo.moduleInstance, params)
+        let value = fn.apply(moduleInfo.impl, params)
 
         if(value instanceof Promise) {
           value
@@ -145,86 +174,91 @@ exports.ModuleContainer = {
   addRoute: (moduleDef, methodName, httpMethod, contentType) => {
     let moduleName = moduleDef.constructor.name
 
-    if(!moduleContainer[moduleName]) {
-      moduleContainer[moduleName] = {
+    if(!modulesContainer[moduleName]) {
+      modulesContainer[moduleName] = {
         methods: []
       }
     }
 
-    moduleContainer[moduleName].methods.push({
+    modulesContainer[moduleName].methods.push({
       methodName: methodName,
       httpMethod: httpMethod,
       contentType: contentType
     })
   },
 
-  addInterface: (type, impl) => {
-    if(!injectedModules[type.name]) {
-      injectedModules[type.name] = impl
+  addInterface: (type) => {
+    if (!ModuleContainer.existsInterface(type)) {
+      modulesContainer[type] = {
+        impl: null,
+        dependents: {},
+        dependencies: {},
+        structure: {},
+        methods: []
+      }
 
-      promisedImplementations[type.name] = new Promise((resolve, reject) => {
-        Object.observe(injectedModules, (changes) => {
-          let change = changes[0]
-
-          if(change.type === 'update' && change.name === type.name) {
-            if(!injectedModulesInstances[type.name]) {
-              injectedModulesInstances[type.name] = new change.object[type.name]()
-            }
-            resolve(injectedModulesInstances[type.name])
-          }
-        })
-      })
+      ModuleContainer.injectionResolver(type)
     }
+  },
+
+  existsInterface: (type) => {
+    return modulesContainer[type]
+  },
+
+  injectionResolver: (type) => {
+    let resolveDependencies = (dependencies) => {
+      for(let property in dependencies) {
+        let expectedType = dependencies[property]
+
+        if(ModuleContainer.existsInterface(expectedType) && modulesContainer[expectedType].impl) {      // Dependency resolved previously
+          modulesContainer[type].impl[property] = modulesContainer[expectedType].impl
+        } else {                                                                        // Dependency pending to be resolved
+          if(!ModuleContainer.existsInterface(expectedType)) {
+            ModuleContainer.addInterface(expectedType)
+          }
+
+          let myOwnDependents = modulesContainer[expectedType].dependents[type] = {}
+          myOwnDependents[property] = (impl) => {
+            modulesContainer[type].impl[property] = impl
+          }
+        }
+      }
+    }
+
+    let dispatchDependents = (dependents) => {
+      for(let className in dependents) {
+        let classProperties = dependents[className]
+
+        for(let property in classProperties) {
+          let resolverCallback = classProperties[property]
+          resolverCallback(modulesContainer[type].impl)
+        }
+      }
+    }
+
+    Object.observe(modulesContainer[type], (changes) => {
+      let change = changes.filter((change) => change.type === 'update')[0]
+
+      // Resolve dependencies
+      resolveDependencies(modulesContainer[type].dependencies)
+
+      // Dispatch dependents
+      dispatchDependents(modulesContainer[type].dependents)
+    })
+  },
+
+  addDependency: (type, property, typeValue) => {
+    ModuleContainer.addInterface(type)
+    modulesContainer[type].dependencies[property] = typeValue
   },
 
   addImplementation: (type, impl) => {
-    if(!injectedModules[type.name]) {
-      let interfaceMethods = Object.getOwnPropertyNames(type.prototype);
-      let implementationMethods = Object.getOwnPropertyNames(impl.prototype);
+    if(!modulesContainer[type].impl) {
+      ModuleContainer.addInterface(type)
 
-      interfaceMethods.filter((methodName) => {return methodName !== 'constructor'}).forEach(methodName => {
-        let isMethodImplemented = implementationMethods.indexOf(methodName) >= 0
-
-        if(!isMethodImplemented) {
-          console.error(`NodeSpring Error:\nThe method "${methodName}" declared in ${type.name} is not implemented in ${impl.name}\n`)
-        } else {
-          let interfaceInstance = new type()
-          let interfaceMethodParams = interfaceInstance[methodName]().params
-
-          for(let param in interfaceMethodParams) {
-            let implMethodParams = getArgs(impl.prototype[methodName])
-            let isParamPresent = implMethodParams.indexOf(param) >= 0
-
-            if(!isParamPresent) {
-              console.error(`NodeSpring Error:\nThe param "${param}" declared in ${type.name}.${methodName}(...) is not present in ${impl.name}.${methodName}(...)\n`)
-            }
-          }
-        }
-      })
-
-      injectedModules[type.name] = impl
-    } else {
-      console.error(`NodeSpring Error: \nThere are more than one implementations associated with the Interface: ${type.name}\nThe current implementation is: ${injectedModules[type.name].name}\nPlease review the class: ${impl.name}, the Interfaces must only have one implementation\n`)
+      modulesContainer[type].impl = new impl()
     }
-  },
-
-  getModuleImpl: (type) => {
-    return promisedImplementations[type.name]
-  },
-
-  getModuleInstance: (moduleName) => {
-    if(!promisedModules[moduleName]) {
-      promisedModules[moduleName] = new Promise((resolve, reject) => {
-        Object.observe(moduleContainer, (changes) => {
-          let change = changes[0]
-
-          if (change.type === 'add' && change.name === moduleName) {
-            resolve(moduleContainer[moduleName].moduleInstance)
-          }
-        })
-      })
-    }
-
-    return promisedModules[moduleName]
   }
 }
+
+exports.ModuleContainer = ModuleContainer

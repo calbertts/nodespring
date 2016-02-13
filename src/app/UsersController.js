@@ -9,11 +9,15 @@ import {Controller} from '../nodespring/decorators/modules'
 import {Get, Post} from '../nodespring/decorators/httpMethods'
 
 import SuperType from '../app/interfaces/SuperType'
+import TestType from './interfaces/TestType'
 import {Inject} from '../nodespring/decorators/dependencyManagement'
 
 
-@Controller({path: 'users'})
+@Controller //({path: 'users'})
 export default class UsersController {
+
+  @Inject(TestType)
+  testType;
 
   @Inject(SuperType)
   superType;
@@ -33,7 +37,7 @@ export default class UsersController {
   test(user) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        resolve('response from UserControll:test:' + this.superType.methodTwo())
+        resolve('response from UserControll:test:' + this.superType.methodTwo()) + " => " + this.testType.uniqueMethod()
       }, 1000)
     })
   }

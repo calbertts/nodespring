@@ -2,10 +2,7 @@
  *
  */
 
-import {Interface} from '../../nodespring/decorators/dependencyManagement'
 
-
-@Interface
 export default class SuperType {
 
   methodOne() {

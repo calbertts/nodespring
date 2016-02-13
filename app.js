@@ -5,7 +5,7 @@ const port = 5000
 
 var ModuleContainer = require('./compiled/nodespring/core/moduleContainer').ModuleContainer
 ModuleContainer.init(app)
-ModuleContainer.loadControllers()
+ModuleContainer.loadModules()
 
 app.get('/', function (req, res) {
   res.send('Hello World!');

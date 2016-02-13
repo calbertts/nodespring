@@ -6,33 +6,30 @@
 
 import {ModuleContainer} from '../core/moduleContainer'
 
+global.implContext = null
+
 export function Inject(typeToInject) {
+
+  console.log('analizing dependency', typeToInject.name, ' for ', global.implContext)
 
   return (target, property, descriptor) => {
     descriptor.writable = true
 
-    let promiseModuleInstanceLoad = ModuleContainer.getModuleInstance(target.constructor.name)
-    let promiseImplLoad = ModuleContainer.getModuleImpl(typeToInject)
+    let targetName = global.implContext ? global.implContext : target.constructor.name
 
-    promiseModuleInstanceLoad.then((moduleInstance) => {
-      promiseImplLoad.then((impl) => {
-        moduleInstance[property] = impl
+    console.log('executing dependency', typeToInject.name, ' for ', targetName)
 
-        console.log(`Dependency injected => ${typeToInject.name} into ${target.constructor.name}`)
-
-        // Avoid redefine the injected instance
-        Object.defineProperty(moduleInstance, property, {writable: false})
-      })
-    })
+    ModuleContainer.addDependency(targetName, property, typeToInject.name)
   }
 }
 
-export function Interface(type) {
-  ModuleContainer.addInterface(type, null)
-}
-
 export function Implements(type) {
+  global.implContext = type.name
+  console.log('analizing implementation', type.name)
+
   return (target, property, descriptor) => {
-    ModuleContainer.addImplementation(type, target)
+    console.log('executing implementation', type.name, ' for ', target.name)
+
+    ModuleContainer.addImplementation(type.name, target)
   }
 }
