@@ -8,12 +8,12 @@ export function Controller() {
 
   let args = arguments[0]
 
-  console.log('analizing controller', args.name)
+  //console.log('analizing controller', args.name)
 
   let options = {}
 
   let addModule = (target) => {
-    console.log('executing controller', args.name, ' for ', target.name)
+    //console.log('executing controller', args.name, ' for ', target.name)
     ModuleContainer.addController(target, options.path || target.name)
   }
 

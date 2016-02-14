@@ -7,42 +7,6 @@ var NodeSpringUtil = require('./nodeSpringUtil').default
 var modulesContainer = {}
 
 
-var validateImpl = (type, impl) => {
-  if(!modulesContainer[type.name].impl) {
-    let interfaceMethods = Object.getOwnPropertyNames(type.prototype);
-    let implementationMethods = Object.getOwnPropertyNames(impl.prototype);
-
-    interfaceMethods.filter((methodName) => {
-      return methodName !== 'constructor'
-    }).forEach(methodName => {
-      let isMethodImplemented = implementationMethods.indexOf(methodName) >= 0
-
-      if (!isMethodImplemented) {
-        throw new Error(`NodeSpring Error:\nThe method "${methodName}" declared in ${type.name} is not implemented in ${impl.name}\n`)
-        return false
-      } else {
-        let interfaceInstance = new type()
-        let interfaceMethodParams = interfaceInstance[methodName]().params
-
-        for (let param in interfaceMethodParams) {
-          let implMethodParams = NodeSpringUtil.getArgs(impl.prototype[methodName])
-          let isParamPresent = implMethodParams.indexOf(param) >= 0
-
-          if (!isParamPresent) {
-            console.error(`NodeSpring Error:\nThe param "${param}" declared in ${type.name}.${methodName}(...) is not present in ${impl.name}.${methodName}(...)\n`)
-            return false
-          }
-        }
-      }
-    })
-
-    return true
-  } else {
-    console.error(`NodeSpring Error: \nThere are more than one implementations associated with the Interface: ${type.name}\nThe current implementation is: ${injectedModules[type.name].name}\nPlease review the class: ${impl.name}, the Interfaces must only have one implementation\n`)
-    return false
-  }
-}
-
 var ModuleContainer = {
 
   expressApp: null,
@@ -137,7 +101,7 @@ var ModuleContainer = {
       })
     }
 
-    console.log('Published URLs => ', publishedURLs)
+    //console.log('Published URLs => ', publishedURLs)
   },
 
   addRoute: (moduleDef, methodName, httpMethod, contentType) => {
@@ -154,6 +118,44 @@ var ModuleContainer = {
       httpMethod: httpMethod,
       contentType: contentType
     })
+  },
+
+  validateImpl: (type, impl) => {
+    ModuleContainer.addInterface(type.name)
+
+    if(!modulesContainer[type.name].impl) {
+      let interfaceMethods = Object.getOwnPropertyNames(type.prototype);
+      let implementationMethods = Object.getOwnPropertyNames(impl.prototype);
+
+      interfaceMethods.filter((methodName) => {
+        return methodName !== 'constructor'
+      }).forEach(methodName => {
+        let isMethodImplemented = implementationMethods.indexOf(methodName) >= 0
+
+        if (!isMethodImplemented) {
+          console.error(`NodeSpring Error:\nThe method "${methodName}" declared in ${type.name} is not implemented in ${impl.name}\n`)
+          return false
+        } else {
+          let interfaceInstance = new type()
+          let interfaceMethodParams = interfaceInstance[methodName]().params
+
+          for (let param in interfaceMethodParams) {
+            let implMethodParams = NodeSpringUtil.getArgs(impl.prototype[methodName])
+            let isParamPresent = implMethodParams.indexOf(param) >= 0
+
+            if (!isParamPresent) {
+              console.error(`NodeSpring Error:\nThe param "${param}" declared in ${type.name}.${methodName}(...) is not present in ${impl.name}.${methodName}(...)\n`)
+              return false
+            }
+          }
+        }
+      })
+
+      return true
+    } else {
+      console.error(`NodeSpring Error: \nThere are more than one implementations associated with the Interface: ${type.name}\nThe current implementation is: ${injectedModules[type.name].name}\nPlease review the class: ${impl.name}, the Interfaces must only have one implementation\n`)
+      return false
+    }
   },
 
   addInterface: (type) => {
@@ -181,6 +183,8 @@ var ModuleContainer = {
 
         if(ModuleContainer.existsInterface(expectedType) && modulesContainer[expectedType].impl) {      // Dependency resolved previously
           modulesContainer[type].impl[property] = modulesContainer[expectedType].impl
+
+          console.log('Dispatching ', modulesContainer[expectedType].impl.constructor.name, ' for ', modulesContainer[type].impl.constructor.name + '.' + property)
         } else {                                                                        // Dependency pending to be resolved
           if(!ModuleContainer.existsInterface(expectedType)) {
             ModuleContainer.addInterface(expectedType)
@@ -189,6 +193,8 @@ var ModuleContainer = {
           let myOwnDependents = modulesContainer[expectedType].dependents[type] = {}
           myOwnDependents[property] = (impl) => {
             modulesContainer[type].impl[property] = impl
+
+            console.log('Dispatchings ', impl.constructor.name, ' for ', modulesContainer[type].impl.constructor.name + '.' + property)
           }
         }
       }
@@ -222,13 +228,15 @@ var ModuleContainer = {
   },
 
   addImplementation: (type, impl) => {
-    validateImpl(type, impl)
-
-    if(!modulesContainer[type.name].impl) {
-      ModuleContainer.addInterface(type.name)
-
+    if(ModuleContainer.validateImpl(type, impl)) {
       modulesContainer[type.name].impl = new impl()
     }
+
+    /*if(!modulesContainer[type.name].impl) {
+      //ModuleContainer.addInterface(type.name)
+
+      modulesContainer[type.name].impl = new impl()
+    }*/
   }
 }
 

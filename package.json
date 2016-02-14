@@ -1,6 +1,6 @@
 {
   "name": "nodespring",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "app.js",
   "dependencies": {
@@ -17,8 +17,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "babel -w src/ -d compiled/ -s",
-    "babel": "babel-node app.js"
+    "compile": "babel -w src/ -d compiled/ -s"
   },
   "author": "calbertts (calbertts@gmail.com)",
   "license": "GNU GPL v3.0"
