@@ -11,15 +11,17 @@ var ModuleContainer = {
 
   expressApp: null,
 
-  init: (app) => {
+  init: (app, appDir) => {
     //NodeSpringUtil.configureLoggingOut()
     ModuleContainer.expressApp = app
   },
 
-  loadModules: () => {
+  loadModules: (appDir) => {
     let load = (path) => {
       fs.lstat(path, (err, stat) => {
-        if (stat.isDirectory()) {
+        if(err)
+          throw err
+        else if (stat.isDirectory()) {
           fs.readdir(path, (err, files) => {
             let f, l = files.length
             for (let i = 0; i < l; i++) {
@@ -29,18 +31,17 @@ var ModuleContainer = {
           })
         } else {
           if(path.indexOf('.map') < 0) {
-            let compiledPath = path.replace('src', 'compiled')
-            let moduleName = path_module.basename(compiledPath, '.js')
+            //let compiledPath = path.replace('src', 'compiled')
+            //let moduleName = path_module.basename(compiledPath, '.js')
 
             //console.log("Loading module => ", moduleName, ', From => ', compiledPath)
-            require(compiledPath).default
+            require(path).default
           }
         }
       })
     }
 
-    let baseDir = path_module.join(__dirname, '../../app')
-    console.log(baseDir)
+    let baseDir = path_module.join(appDir)
     load(baseDir)
   },
 

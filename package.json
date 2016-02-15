@@ -1,24 +1,21 @@
 {
   "name": "nodespring",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "index.js",
   "dependencies": {
-    "babel": "^6.3.26",
-    "babel-preset-es2015": "^6.3.13",
-    "babel-preset-stage-0": "^6.3.13",
     "express": "^4.13.4"
   },
   "devDependencies": {
     "babel-cli": "^6.4.5",
     "babel-core": "^6.4.5",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
-    "babel-preset-es2015": "^6.3.13"
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-stage-0": "^6.3.13"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "babel -w src/ -d compiled/ -s",
-    "start": "npm run compile & nodemon --debug=5858 ./compiled/app/app.js"
+    "compile-index": "babel -w index.es6 -o index.js",
+    "compile": "npm run compile-index & babel -w src/ -d lib/ -s"
   },
   "author": "calbertts (calbertts@gmail.com)",
   "license": "GNU GPL v3.0"

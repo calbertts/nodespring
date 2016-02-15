@@ -2,4 +2,4 @@
 /compiled
 /.idea
 npm-debug.log
-nodespring.log
+src/nodespring.log
