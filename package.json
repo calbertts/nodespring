@@ -17,7 +17,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "babel -w src/ -d compiled/ -s"
+    "compile": "babel -w src/ -d compiled/ -s",
+    "start": "npm run compile & nodemon --debug=5858 ./compiled/app/app.js"
   },
   "author": "calbertts (calbertts@gmail.com)",
   "license": "GNU GPL v3.0"

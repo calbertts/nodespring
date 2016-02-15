@@ -35,3 +35,13 @@ export function Implements(type) {
     ModuleContainer.addImplementation(type, target)
   }
 }
+
+export function Interface(interfaceBase) {
+  let interfaceClass = arguments[0]
+
+  interfaceClass.prototype.constructor = new Function(interfaceClass.name, " return function " + interfaceClass.name + "(){ "+
+    "throw TypeError('NodeSpring Error: Cannot construct "+interfaceClass.name+" instances directly, because it is an Interface')}")
+  ()
+
+  return interfaceClass.prototype.constructor
+}

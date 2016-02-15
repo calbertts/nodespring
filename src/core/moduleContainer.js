@@ -12,7 +12,7 @@ var ModuleContainer = {
   expressApp: null,
 
   init: (app) => {
-    NodeSpringUtil.configureLoggingOut()
+    //NodeSpringUtil.configureLoggingOut()
     ModuleContainer.expressApp = app
   },
 
@@ -153,7 +153,7 @@ var ModuleContainer = {
 
       return true
     } else {
-      console.error(`NodeSpring Error: \nThere are more than one implementations associated with the Interface: ${type.name}\nThe current implementation is: ${injectedModules[type.name].name}\nPlease review the class: ${impl.name}, the Interfaces must only have one implementation\n`)
+      console.error(`NodeSpring Error: \nThere are more than one implementations associated with the Interface: ${type.name}\nThe current implementation is: ${modulesContainer[type.name].name}\nPlease review the class: ${impl.name}, the Interfaces must only have one implementation\n`)
       return false
     }
   },
@@ -231,12 +231,6 @@ var ModuleContainer = {
     if(ModuleContainer.validateImpl(type, impl)) {
       modulesContainer[type.name].impl = new impl()
     }
-
-    /*if(!modulesContainer[type.name].impl) {
-      //ModuleContainer.addInterface(type.name)
-
-      modulesContainer[type.name].impl = new impl()
-    }*/
   }
 }
 
