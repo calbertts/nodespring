@@ -4,19 +4,37 @@ var injectMocksCllbk
 var localMocksInjectedCllbk
 var mocksToInject = {}
 
+let isClass = (arg) => {
+  return arg && arg.constructor === Function
+}
 
 export function TestClass(testClass) {
+  if(!isClass(testClass))
+    throw new TypeError('A class was expected to test')
+
   let testClassObj = new testClass()
   injectMocksCllbk(testClassObj)
   localMocksInjectedCllbk(testClassObj)
 
-  console.log(testClassObj)
+  let testingMethods = Object.getOwnPropertyNames(testClass.prototype)
 
-  console.log(testClassObj.test1())
+  // Running all methods
+  let beforeMethods = testingMethods.filter((method) => {return testClassObj[method].beforeMethod === true})
+  let testMethods = testingMethods.filter((method) => {return testClassObj[method].testMethod === true})
+
+  testMethods.forEach((method) => {
+    beforeMethods.forEach((beforeMethod) => {
+      testClassObj[beforeMethod]()
+    })
+    testClassObj[method]()
+  })
 }
 
 
 export function Mock(type) {
+  if(!type.isInterface)
+    throw new TypeError('Mock expects an Interface as a parameter, instead ' + type.name + ' was received')
+
   return (target, property, descriptor) => {
     let mockInstance = {
       uniqueMethod: () => {
@@ -34,10 +52,19 @@ export function Mock(type) {
 }
 
 
-export function Test() {
-  return (target) => {
-    console.log('Inside ', target.name)
-  }
+export function Test(target, property, descriptor) {
+  if(typeof target[property] !== 'function')
+    throw new TypeError('A function was expected to test: ' + property)
+
+  descriptor.value.testMethod = true
+}
+
+
+export function Before(target, property, descriptor) {
+  if(typeof target[property] !== 'function')
+    throw new TypeError('A function was expected to test: ' + property)
+
+  descriptor.value.beforeMethod = true
 }
 
 
@@ -55,7 +82,6 @@ export function InjectMocks(type) {
 
     injectMocksCllbk = (testClassObj) => {
       testClassObj[property] = objToTest
-      console.log('objToTest', objToTest)
     }
   }
 }

@@ -125,8 +125,8 @@ var ModuleContainer = {
     ModuleContainer.addInterface(type.name)
 
     if(!modulesContainer[type.name].impl) {
-      let interfaceMethods = Object.getOwnPropertyNames(type.prototype);
-      let implementationMethods = Object.getOwnPropertyNames(impl.prototype);
+      let interfaceMethods = Object.getOwnPropertyNames(type.prototype)
+      let implementationMethods = Object.getOwnPropertyNames(impl.prototype)
 
       interfaceMethods.filter((methodName) => {
         return methodName !== 'constructor'

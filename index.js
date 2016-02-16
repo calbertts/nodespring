@@ -19,5 +19,6 @@ exports.Inject = _dependencyManagement.Inject;
 exports.Controller = _controller.Controller;
 exports.Mock = _testing.Mock;
 exports.Test = _testing.Test;
+exports.Before = _testing.Before;
 exports.InjectMocks = _testing.InjectMocks;
 exports.TestClass = _testing.TestClass;
