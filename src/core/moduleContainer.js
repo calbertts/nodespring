@@ -232,6 +232,10 @@ var ModuleContainer = {
     if(ModuleContainer.validateImpl(type, impl)) {
       modulesContainer[type.name].impl = new impl()
     }
+  },
+
+  getModuleContainer: () => {
+    return modulesContainer
   }
 }
 
