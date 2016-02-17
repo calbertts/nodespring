@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/decorators/service.js"],"names":[],"mappings":";;;;;QAGgB;;;;AAAT,SAAS,OAAT,CAAiB,MAAjB,EAAyB;AAC9B,mCAAgB,UAAhB,CAA2B,MAA3B,EAD8B;CAAzB","file":"service.js","sourcesContent":["import {ModuleContainer} from '../core/moduleContainer'\n\n\nexport function Service(target) {\n  ModuleContainer.addService(target)\n}\n"]}

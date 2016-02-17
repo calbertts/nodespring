@@ -8,6 +8,8 @@ var _dependencyManagement = require('./lib/decorators/dependencyManagement');
 
 var _controller = require('./lib/decorators/controller');
 
+var _service = require('./lib/decorators/service');
+
 var _testing = require('./lib/decorators/testing');
 
 exports.ModuleContainer = _moduleContainer.ModuleContainer;
@@ -17,6 +19,7 @@ exports.Interface = _dependencyManagement.Interface;
 exports.Implements = _dependencyManagement.Implements;
 exports.Inject = _dependencyManagement.Inject;
 exports.Controller = _controller.Controller;
+exports.Service = _service.Service;
 exports.Mock = _testing.Mock;
 exports.Test = _testing.Test;
 exports.Before = _testing.Before;

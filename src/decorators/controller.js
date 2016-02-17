@@ -22,6 +22,7 @@ export function Controller() {
     return addModule
   } else {
     let target = arguments[0]
+    target.type = 'controller'
 
     addModule(target)
   }

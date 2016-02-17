@@ -45,13 +45,26 @@ var ModuleContainer = {
     load(baseDir)
   },
 
+  addService(moduleDef) {
+    let moduleName = moduleDef.name
+
+    if(!modulesContainer[moduleName]) {
+      modulesContainer[moduleName] = {
+        type: 'service',
+        dependents: {},
+        dependencies: {}
+      }
+    }
+
+    modulesContainer[moduleName].impl = new moduleDef()
+  },
+
   addController(moduleDef, path) {
     let moduleName = moduleDef.name
 
     if(!modulesContainer[moduleName]) {
       modulesContainer[moduleName] = {
-        methods: [],
-        dependents: {}
+        methods: []
       }
     }
 
