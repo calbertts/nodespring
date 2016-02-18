@@ -1,6 +1,6 @@
 {
   "name": "nodespring",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "NodeJS framework to create web applications using Spring concepts",
   "main": "index.js",
   "dependencies": {
