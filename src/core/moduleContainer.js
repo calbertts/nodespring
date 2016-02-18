@@ -48,28 +48,20 @@ var ModuleContainer = {
   addService(moduleDef) {
     let moduleName = moduleDef.name
 
-    if(!modulesContainer[moduleName]) {
-      modulesContainer[moduleName] = {
-        type: 'service',
-        dependents: {},
-        dependencies: {}
-      }
-    }
-
+    ModuleContainer.addInterface(moduleName)
     modulesContainer[moduleName].impl = new moduleDef()
+
+    ModuleContainer.runInjectionResolver(moduleName)
   },
 
   addController(moduleDef, path) {
     let moduleName = moduleDef.name
 
-    if(!modulesContainer[moduleName]) {
-      modulesContainer[moduleName] = {
-        methods: []
-      }
-    }
-
+    ModuleContainer.addInterface(moduleName)
     modulesContainer[moduleName].path = path
     modulesContainer[moduleName].impl = new moduleDef()
+
+    ModuleContainer.runInjectionResolver(moduleName)
 
     let moduleInfo = modulesContainer[moduleName]
     let publishedURLs = []
@@ -121,6 +113,7 @@ var ModuleContainer = {
   addRoute: (moduleDef, methodName, httpMethod, contentType) => {
     let moduleName = moduleDef.constructor.name
 
+    // TODO: "this" object is wrong here
     if(!modulesContainer[moduleName]) {
       modulesContainer[moduleName] = {
         methods: []
@@ -179,10 +172,17 @@ var ModuleContainer = {
         dependents: {},
         dependencies: {},
         structure: {},
-        methods: []
+        methods: [],
+        isInstanceResolved: () => {
+          return modulesContainer[type].impl !== null
+        },
+        getInstance: (callbk) => {
+          callbk(modulesContainer[type].impl)
+        },
+        injectDependency: (property, impl) => {
+          modulesContainer[type].impl[property] = impl
+        }
       }
-
-      ModuleContainer.injectionResolver(type)
     }
   },
 
@@ -190,60 +190,64 @@ var ModuleContainer = {
     return modulesContainer[type]
   },
 
-  injectionResolver: (type) => {
-    let resolveDependencies = (dependencies) => {
-      for(let property in dependencies) {
-        let expectedType = dependencies[property]
+  resolveDependencies: (type, dependencies) => {
+    for(let property in dependencies) {
+      let expectedType = dependencies[property]
 
-        if(ModuleContainer.existsInterface(expectedType) && modulesContainer[expectedType].impl) {      // Dependency resolved previously
-          modulesContainer[type].impl[property] = modulesContainer[expectedType].impl
+      if(ModuleContainer.existsInterface(expectedType) && modulesContainer[expectedType].isInstanceResolved()) {
+        modulesContainer[expectedType].getInstance((instance) => {
+          modulesContainer[type].injectDependency(property, instance)
+        })
 
-          console.log('Dispatching ', modulesContainer[expectedType].impl.constructor.name, ' for ', modulesContainer[type].impl.constructor.name + '.' + property)
-        } else {                                                                        // Dependency pending to be resolved
-          if(!ModuleContainer.existsInterface(expectedType)) {
-            ModuleContainer.addInterface(expectedType)
-          }
+        console.log('Dispatching ', modulesContainer[expectedType].impl.constructor.name, ' for ', modulesContainer[type].impl.constructor.name + '.' + property)
+      } else {
+        if(!ModuleContainer.existsInterface(expectedType)) {
+          ModuleContainer.addInterface(expectedType)
+        }
 
-          let myOwnDependents = modulesContainer[expectedType].dependents[type] = {}
-          myOwnDependents[property] = (impl) => {
-            modulesContainer[type].impl[property] = impl
+        let myOwnDependents = modulesContainer[expectedType].dependents[type] = {}
+        myOwnDependents[property] = (instance) => {
+          modulesContainer[type].injectDependency(property, instance)
 
-            console.log('Dispatchings ', impl.constructor.name, ' for ', modulesContainer[type].impl.constructor.name + '.' + property)
-          }
+          console.log('Dispatchings ', instance.constructor.name, ' for ', modulesContainer[type].impl.constructor.name + '.' + property)
         }
       }
     }
-
-    let dispatchDependents = (dependents) => {
-      for(let className in dependents) {
-        let classProperties = dependents[className]
-
-        for(let property in classProperties) {
-          let resolverCallback = classProperties[property]
-          resolverCallback(modulesContainer[type].impl)
-        }
-      }
-    }
-
-    Object.observe(modulesContainer[type], (changes) => {
-      let change = changes.filter((change) => change.type === 'update')[0]
-
-      // Resolve dependencies
-      resolveDependencies(modulesContainer[type].dependencies)
-
-      // Dispatch dependents
-      dispatchDependents(modulesContainer[type].dependents)
-    })
   },
 
-  addDependency: (type, property, typeValue) => {
+  dispatchDependents: (type, dependents) => {
+    for(let className in dependents) {
+      let classProperties = dependents[className]
+
+      for(let property in classProperties) {
+        let resolverCallback = classProperties[property]
+        modulesContainer[type].getInstance((instance) => {
+          resolverCallback(instance)
+        })
+      }
+    }
+  },
+
+  runInjectionResolver: (type) => {
+    // Resolve dependencies
+    ModuleContainer.resolveDependencies(type, modulesContainer[type].dependencies)
+
+    // Dispatch dependents
+    ModuleContainer.dispatchDependents(type, modulesContainer[type].dependents)
+  },
+
+  addDependency: (type, property, typeToInject) => {
+    if(typeToInject.moduleType === 'controller')
+      throw new TypeError('You cannot inject a Controller as a dependency, please take a look on ' + type.name)
+
     ModuleContainer.addInterface(type)
-    modulesContainer[type].dependencies[property] = typeValue
+    modulesContainer[type].dependencies[property] = typeToInject.name
   },
 
   addImplementation: (type, impl) => {
     if(ModuleContainer.validateImpl(type, impl)) {
       modulesContainer[type.name].impl = new impl()
+      ModuleContainer.runInjectionResolver(type.name)
     }
   },
 

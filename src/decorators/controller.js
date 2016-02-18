@@ -14,6 +14,7 @@ export function Controller() {
 
   let addModule = (target) => {
     //console.log('executing controller', args.name, ' for ', target.name)
+    target.moduleType = 'controller'
     ModuleContainer.addController(target, options.path || target.name)
   }
 

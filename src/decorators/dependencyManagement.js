@@ -19,7 +19,7 @@ export function Inject(typeToInject) {
 
     //console.log('executing dependency', typeToInject.name, ' for ', targetName)
 
-    ModuleContainer.addDependency(targetName, property, typeToInject.name)
+    ModuleContainer.addDependency(targetName, property, typeToInject)
   }
 }
 
@@ -31,6 +31,8 @@ export function Implements(type) {
   return (target, property, descriptor) => {
     //console.log('executing implementation', type.name, ' for ', target.name)
     target.interfaceName = type.name
+    target.moduleType = 'implementation'
+
     global.implContext = null
 
     ModuleContainer.addImplementation(type, target)
@@ -39,7 +41,7 @@ export function Implements(type) {
 
 export function Interface(interfaceBase) {
   let interfaceClass = arguments[0]
-  interfaceBase.isInterface = true
+  interfaceBase.moduleType = 'interface'
 
   /*interfaceClass.prototype.constructor = new Function(interfaceClass.name, " return function " + interfaceClass.name + "(){ "+
     "throw TypeError('NodeSpring Error: Cannot construct "+interfaceClass.name+" instances directly, because it is an Interface')}")

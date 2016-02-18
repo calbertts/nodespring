@@ -32,7 +32,7 @@ export function TestClass(testClass) {
 
 
 export function Mock(type) {
-  if(!type.isInterface)
+  if(!type.moduleType === 'interface')
     throw new TypeError('Mock expects an Interface as a parameter, instead ' + type.name + ' was received')
 
   return (target, property, descriptor) => {
