@@ -29,7 +29,89 @@ First of all, I want to give you a general review of the concepts used by NodeSp
 
 * **Unit testing**
   This is basically the ability to isolate your Service/Implementation code to be tested, the isolation can be achieved using mocks, *NodeSpring* has a mechanism to do it.
-  
+
+
+## How they looks like?
+A *Controller* looks like this:
+
+```javascript
+import {Controller, Get, Post, Inject} from 'nodespring'
+import MyUsersService from '../services/MyUsersService'
+
+
+@Controller
+export default class MyClass {
+
+  @Inject(MyUsersService)
+  usersService
+
+  @Post({contentType: 'application/json'})
+  saveObject(object) {
+    return usersService.saveUser(object)
+  }
+
+  @Get
+  getUsersList() {
+    return usersService.getUsersList()
+  }
+}
+```
+
+A service like this:
+
+```javascript
+import {Service, Inject} from 'nodespring'
+import DBService from '../interfaces/DBService'
+
+
+@Service
+export default class MyUsersService {
+
+  @Inject(DBService)
+  dbService
+
+  saveUser(user) {
+    return dbService.saveEntity('Users', object)
+  }
+
+  getUsersList() {
+    return dbService.getEntityList('Users')
+  }
+}
+```
+
+An implementation like this:
+
+```javascript
+import {Implements, Inject} from 'nodespring'
+import DBService from './../interfaces/DBService'
+// import your mongo library
+
+@Implements(DBService)
+export default class DBServiceMongoImpl {
+
+  saveEntity(entityType, entity) {
+    return new Promise((resolve, reject) => {
+        // MongoDB stuff
+        
+        resolve(response)
+    })
+  }
+
+  getEntityList(entityType) {
+    return new Promise((resolve, reject) => {
+        // MongoDB stuff
+        
+        resolve(usersList)
+    })
+  }
+}
+
+```
+
+Notice that you aren't using MongoDB directly in your service layer, instead, you have a specific implementation to deal with DB operations, if the database engine needs to be changed in the future, you only need to create a new implementation of the interface **DBService**.
+
+
 ## Examples
 There's an example application created by using *NodeSpring* in this repository:
 
