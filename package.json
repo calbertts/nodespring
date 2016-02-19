@@ -1,7 +1,7 @@
 {
   "name": "nodespring",
-  "version": "0.0.4",
-  "description": "NodeJS framework to create web applications using Spring concepts",
+  "version": "0.0.5",
+  "description": "Dependency Injection and Unit testing for NodeJS using Javascript decorators",
   "main": "index.js",
   "dependencies": {
     "express": "^4.13.4"
