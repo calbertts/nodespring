@@ -50,6 +50,7 @@ var ModuleContainer = {
 
     ModuleContainer.addInterface(moduleName)
     modulesContainer[moduleName].impl = new moduleDef()
+    modulesContainer[moduleName].moduleType = moduleDef.moduleType
 
     ModuleContainer.runInjectionResolver(moduleName)
   },
@@ -60,6 +61,7 @@ var ModuleContainer = {
     ModuleContainer.addInterface(moduleName)
     modulesContainer[moduleName].path = path
     modulesContainer[moduleName].impl = new moduleDef()
+    modulesContainer[moduleName].moduleType = moduleDef.moduleType
 
     ModuleContainer.runInjectionResolver(moduleName)
 
@@ -173,11 +175,47 @@ var ModuleContainer = {
         dependencies: {},
         structure: {},
         methods: [],
+        instanceResolvedValue: false,
         isInstanceResolved: () => {
-          return modulesContainer[type].impl !== null
+          if(modulesContainer[type].moduleType === 'service' || modulesContainer[type].moduleType === 'controller') {
+            return modulesContainer[type].impl !== null
+          } else {
+            return modulesContainer[type].instanceResolvedValue
+          }
         },
-        getInstance: (callbk) => {
-          callbk(modulesContainer[type].impl)
+        getInstance: () => {
+          if(modulesContainer[type].moduleType === 'service' || modulesContainer[type].moduleType === 'controller') {
+            return new Promise((resolve, reject) => {
+              resolve(modulesContainer[type].impl)
+            })
+          } else {
+            let moduleInfo = modulesContainer[type]
+            let dependencies = moduleInfo.dependencies
+
+            if (Object.keys(dependencies).length > 0) {
+              let dependenciesInstancesPromises = []
+              for(let property in dependencies) {
+                let moduleNeeded = dependencies[property]
+
+                dependenciesInstancesPromises.push(
+                  modulesContainer[moduleNeeded].getInstance()
+                )
+              }
+
+              return new Promise((resolve, reject) => {
+                Promise.all(dependenciesInstancesPromises).then(() => {
+                  moduleInfo.instanceResolvedValue = true
+                  console.log('listOfInstances', arguments)
+                  resolve(new modulesContainer[type].impl())
+                })
+              })
+            } else {
+              moduleInfo.instanceResolvedValue = true
+              return new Promise((resolve, reject) => {
+                resolve(new modulesContainer[type].impl())
+              })
+            }
+          }
         },
         injectDependency: (property, impl) => {
           modulesContainer[type].impl[property] = impl
@@ -195,11 +233,11 @@ var ModuleContainer = {
       let expectedType = dependencies[property]
 
       if(ModuleContainer.existsInterface(expectedType) && modulesContainer[expectedType].isInstanceResolved()) {
-        modulesContainer[expectedType].getInstance((instance) => {
+        modulesContainer[expectedType].getInstance().then((instance) => {
           modulesContainer[type].injectDependency(property, instance)
-        })
 
-        console.log('Dispatching ', modulesContainer[expectedType].impl.constructor.name, ' for ', modulesContainer[type].impl.constructor.name + '.' + property)
+          console.log('Dispatching ', modulesContainer[expectedType].impl.constructor.name, ' for ', modulesContainer[type].impl.constructor.name + '.' + property)
+        })
       } else {
         if(!ModuleContainer.existsInterface(expectedType)) {
           ModuleContainer.addInterface(expectedType)
@@ -221,7 +259,7 @@ var ModuleContainer = {
 
       for(let property in classProperties) {
         let resolverCallback = classProperties[property]
-        modulesContainer[type].getInstance((instance) => {
+        modulesContainer[type].getInstance().then((instance) => {
           resolverCallback(instance)
         })
       }
@@ -246,8 +284,45 @@ var ModuleContainer = {
 
   addImplementation: (type, impl) => {
     if(ModuleContainer.validateImpl(type, impl)) {
-      modulesContainer[type.name].impl = new impl()
+      modulesContainer[type.name].impl = impl
+
+      /*let moduleInfo = modulesContainer[type.name]
+      let dependencies = moduleInfo.dependencies
+
+      if (Object.keys(dependencies).length > 0) {
+        let dependenciesInstancesPromises = []
+        for(let property in dependencies) {
+          let moduleNeeded = dependencies[property]
+
+          dependenciesInstancesPromises.push(
+            modulesContainer[moduleNeeded].getInstance()
+          )
+        }
+
+        moduleInfo.getInstance = () => {
+          return new Promise((resolve, reject) => {
+            Promise.all(dependenciesInstancesPromises).then(() => {
+              moduleInfo.impl = new impl()
+              console.log('listOfInstances', arguments)
+              resolve(new impl())
+            })
+          })
+        }
+      } else {
+        moduleInfo.impl = new impl()
+        moduleInfo.getInstance = () => {
+          return new Promise((resolve, reject) => {
+            resolve(new impl())
+          })
+        }
+      }*/
+
       ModuleContainer.runInjectionResolver(type.name)
+
+      /*if(ModuleContainer.validateImpl(type, impl)) {
+       modulesContainer[type.name].impl = new impl()
+       ModuleContainer.runInjectionResolver(type.name)
+       }*/
     }
   },
 
