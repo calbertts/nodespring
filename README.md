@@ -1,6 +1,8 @@
 # NodeSpring
 
-Dependency Injection and Unit testing using Javascript decorators
+```bash
+npm install nodespring
+```
 
 
 ## Why I made this?
