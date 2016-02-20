@@ -18,7 +18,7 @@
     "compile": "compile-index & babel -w src/ -d lib/ -s"
   },
   "author": "calbertts (calbertts@gmail.com)",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/calbertts/nodespring.git"
