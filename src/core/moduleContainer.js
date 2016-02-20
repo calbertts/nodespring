@@ -4,7 +4,8 @@ var NodeSpringUtil = require('./nodeSpringUtil').default
 
 
 // The unique module container
-var modulesContainer = {}
+global.modulesContainer = {}
+var modulesContainer = global.modulesContainer
 
 
 var ModuleContainer = {
@@ -194,25 +195,39 @@ var ModuleContainer = {
 
             if (Object.keys(dependencies).length > 0) {
               let dependenciesInstancesPromises = []
+              let mapImplVariable = {}
+
               for(let property in dependencies) {
                 let moduleNeeded = dependencies[property]
 
-                dependenciesInstancesPromises.push(
-                  modulesContainer[moduleNeeded].getInstance()
-                )
+                let promise = modulesContainer[moduleNeeded].getInstance()
+
+                mapImplVariable[moduleNeeded] = property
+
+                dependenciesInstancesPromises.push(promise)
               }
 
               return new Promise((resolve, reject) => {
-                Promise.all(dependenciesInstancesPromises).then(() => {
-                  moduleInfo.instanceResolvedValue = true
-                  console.log('listOfInstances', arguments)
-                  resolve(new modulesContainer[type].impl())
+                Promise.all(dependenciesInstancesPromises).then((instances) => {
+                  let mainInstance = new modulesContainer[type].impl()
+
+                  instances.forEach((instanceToInject) => {
+                    let varType = instanceToInject.constructor.interfaceName
+                    let property = mapImplVariable[varType]
+
+                    mainInstance[property] = instanceToInject
+                  })
+
+                  resolve(mainInstance)
                 })
               })
             } else {
-              moduleInfo.instanceResolvedValue = true
               return new Promise((resolve, reject) => {
-                resolve(new modulesContainer[type].impl())
+                Object.observe(modulesContainer[type], (changes) => {
+                  let change = changes.filter((change) => change.type === 'update')[0]
+                  modulesContainer[type].instanceResolvedValue = true
+                  resolve(new modulesContainer[type].impl())
+                })
               })
             }
           }
