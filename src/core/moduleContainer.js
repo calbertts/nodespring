@@ -208,6 +208,11 @@ var ModuleContainer = {
               }
 
               return new Promise((resolve, reject) => {
+
+                /**
+                 * Wait for the dependencies are resolved to be injected
+                 * in the instance that's being created
+                 */
                 Promise.all(dependenciesInstancesPromises).then((instances) => {
                   let mainInstance = new modulesContainer[type].impl()
 
@@ -218,6 +223,14 @@ var ModuleContainer = {
                     mainInstance[property] = instanceToInject
                   })
 
+                  // Call the init method once all the dependencies are created and injected
+                  let postInjectMethod = modulesContainer[type].postInjectMethod
+
+                  if(postInjectMethod) {
+                    mainInstance[postInjectMethod]()
+                  }
+
+                  // Resolve the complete instance to the modules which are waiting for it
                   resolve(mainInstance)
                 })
               })
@@ -301,37 +314,6 @@ var ModuleContainer = {
     if(ModuleContainer.validateImpl(type, impl)) {
       modulesContainer[type.name].impl = impl
 
-      /*let moduleInfo = modulesContainer[type.name]
-      let dependencies = moduleInfo.dependencies
-
-      if (Object.keys(dependencies).length > 0) {
-        let dependenciesInstancesPromises = []
-        for(let property in dependencies) {
-          let moduleNeeded = dependencies[property]
-
-          dependenciesInstancesPromises.push(
-            modulesContainer[moduleNeeded].getInstance()
-          )
-        }
-
-        moduleInfo.getInstance = () => {
-          return new Promise((resolve, reject) => {
-            Promise.all(dependenciesInstancesPromises).then(() => {
-              moduleInfo.impl = new impl()
-              console.log('listOfInstances', arguments)
-              resolve(new impl())
-            })
-          })
-        }
-      } else {
-        moduleInfo.impl = new impl()
-        moduleInfo.getInstance = () => {
-          return new Promise((resolve, reject) => {
-            resolve(new impl())
-          })
-        }
-      }*/
-
       ModuleContainer.runInjectionResolver(type.name)
 
       /*if(ModuleContainer.validateImpl(type, impl)) {
@@ -339,6 +321,10 @@ var ModuleContainer = {
        ModuleContainer.runInjectionResolver(type.name)
        }*/
     }
+  },
+
+  addPostInjectMethod: (type, methodName) => {
+    modulesContainer[type].postInjectMethod = methodName
   },
 
   getModuleContainer: () => {

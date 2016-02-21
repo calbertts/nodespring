@@ -1,6 +1,6 @@
 {
   "name": "nodespring",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Dependency Injection and Unit testing for NodeJS using Javascript decorators",
   "main": "index.js",
   "dependencies": {
@@ -15,7 +15,7 @@
   },
   "scripts": {
     "compile-index": "babel -w index.es6 -o index.js",
-    "compile": "compile-index & babel -w src/ -d lib/ -s"
+    "compile": "npm run compile-index & babel -w src/ -d lib/ -s"
   },
   "author": "calbertts (calbertts@gmail.com)",
   "license": "MIT",

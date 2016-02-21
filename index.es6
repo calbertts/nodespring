@@ -1,6 +1,6 @@
 import {ModuleContainer} from './lib/core/moduleContainer'
 import {Get, Post} from './lib/decorators/httpMethods'
-import {Interface, Implements, Inject} from './lib/decorators/dependencyManagement'
+import {Interface, Implements, Inject, PostInject} from './lib/decorators/dependencyManagement'
 import {Controller} from './lib/decorators/controller'
 import {Service} from './lib/decorators/service'
 import {Mock, TestClass, Test, Before, InjectMocks} from './lib/decorators/testing'
@@ -18,3 +18,4 @@ exports.Test = Test
 exports.Before = Before
 exports.InjectMocks = InjectMocks
 exports.TestClass = TestClass
+exports.PostInject = PostInject

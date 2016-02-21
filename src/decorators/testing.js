@@ -13,6 +13,7 @@ export function TestClass(testClass) {
     throw new TypeError('A class was expected to test')
 
   let testClassObj = new testClass()
+
   injectMocksCllbk(testClassObj)
   localMocksInjectedCllbk(testClassObj)
 
@@ -72,8 +73,25 @@ export function InjectMocks(type) {
   return (target, property, descriptor) => {
     descriptor.writable = true
 
-    let metaInstance = ModuleContainer.getModuleContainer()[type.interfaceName]
-    let objToTest = metaInstance.impl
+    let metaInstance
+    let objToTest
+
+    switch(type.moduleType) {
+
+      case 'implementation' :
+        metaInstance = ModuleContainer.getModuleContainer()[type.interfaceName]
+        objToTest = new metaInstance.impl()
+      break
+
+      case 'service' :
+        metaInstance = ModuleContainer.getModuleContainer()[type.name]
+        objToTest = metaInstance.impl
+      break
+
+      case 'controller' :
+        throw new TypeError('Testing for Controllers are not supported yet')
+      break
+    }
 
     for(let classProp in metaInstance.dependencies) {
       let dataType = metaInstance.dependencies[classProp]

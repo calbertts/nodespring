@@ -25,3 +25,4 @@ exports.Test = _testing.Test;
 exports.Before = _testing.Before;
 exports.InjectMocks = _testing.InjectMocks;
 exports.TestClass = _testing.TestClass;
+exports.PostInject = _dependencyManagement.PostInject;

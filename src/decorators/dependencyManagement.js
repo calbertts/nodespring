@@ -49,3 +49,7 @@ export function Interface(interfaceBase) {
 
   return interfaceClass.prototype.constructor
 }
+
+export function PostInject(target, property, descriptor) {
+  ModuleContainer.addPostInjectMethod(global.implContext.name, property)
+}
