@@ -1,3 +1,7 @@
+import clc from 'cli-color'
+import t from 'exectimer'
+import assert from '../core/assert'
+
 import {ModuleContainer} from '../core/moduleContainer'
 
 var injectMocksCllbk
@@ -20,14 +24,64 @@ export function TestClass(testClass) {
   let testingMethods = Object.getOwnPropertyNames(testClass.prototype)
 
   // Running all methods
+  let className = testClassObj.constructor.name
   let beforeMethods = testingMethods.filter((method) => {return testClassObj[method].beforeMethod === true})
   let testMethods = testingMethods.filter((method) => {return testClassObj[method].testMethod === true})
+  let promises = []
+  let methodStatus = {
+    success: [],
+    failed: []
+  }
+
+  console.log(clc.blue('NodeSpring Unit Test Runner:', clc.yellow(className, '\n')))
+
+  let tick = new t.Tick(className)
+  tick.start()
 
   testMethods.forEach((method) => {
     beforeMethods.forEach((beforeMethod) => {
       testClassObj[beforeMethod]()
     })
-    testClassObj[method]()
+
+    let promise = new Promise((resolve, reject) => {
+
+      let assertInstance = {}
+      Object.assign(assertInstance, assert)
+
+      assertInstance.done = () => {
+        if(assertInstance.ok.lastStack) {
+
+          console.log(clc.red('  ✘', method))
+          console.log(clc.red('   ', assertInstance.ok.lastStack), '\n')
+
+          methodStatus.failed.push(method)
+          resolve()
+          assertInstance.ok.lastStack = null
+        } else {
+          console.log(clc.green('  ✔', method), '\n')
+
+          methodStatus.success.push(method)
+          resolve()
+        }
+      }
+
+      testClassObj[method](assertInstance)
+    })
+
+    promises.push(promise)
+  })
+
+  Promise.all(promises).then((values) => {
+    tick.stop()
+
+    let timeStr = t.timers[className].parse(t.timers[className].duration())
+
+    if(methodStatus.failed.length > 0)
+      console.log(' ', clc.red(methodStatus.failed.length, 'of', testMethods.length, 'tests failed'))
+    else
+      console.log(' ', clc.blue('All tests have passed!'))
+
+    console.log(clc.blue('  Time:'), clc.yellow(timeStr), '\n')
   })
 }
 
