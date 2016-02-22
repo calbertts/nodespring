@@ -1,37 +1,33 @@
 # NodeSpring
 
+NodeSpring is a framework to create NodeJS applications using common patterns used in other programming languages and frameworks like Java and Spring.
+
 ```bash
 npm install nodespring
 ```
 
 
-## Why I made this?
-If you have worked with Java and Spring you have learned some concepts and ways to code and test that can be challenge to find out on NodeJS.
-I'm conscious about Javascript has its own nature, but please, don't hate me because with this I'm making Javascript more like Java, at least with the syntax, I just want to make the developer's life easier by reducing the bolierplate code, that's all.
- 
-Although Dependency Injection (DI) is a concept which is used in several programming languages including Javascript, I have to say, I love the way Spring does, that's why I wanted to have the nice syntax to declare dependencies from Spring and also, the great features and flexibility you can have with Javascript.
-
-It's important to mention that Unit Testing is easier when you use DI, creating references to interfaces instead of implementations is a good practice if you want to have decoupled and maintainable code.
-
-
 ## Concepts
-First of all, I want to give you a general review of the concepts used by NodeSpring:
+The concepts used by NodeSpring:
 
 * **Controllers**
-  Basically the end points where you deal with HTTP methods (GET, POST, etc.) and invoke the service layer
+  The end points where you deal with HTTP methods (GET, POST, etc.) and invoke the service layer
   
 * **Services**
-  If you divide your application in modules, it's nice to have a service layer where you define the way that other modules are going to communicate with the other ones
+  Since you have several modules in your application, it's a good practice to have a service layer where you define the way that those modules are going to communicate each other
 
-* **Interfaces and Implementations**
-  An interface in *NodeSpring* is a Javascript class (ES6) where you define methods without business logic, just the definition and a specific format explained in the documentation.
-  An implementation is a class that implements all the methods defined on the interface.
+* **Interfaces**
+  An interface in *NodeSpring* is a Javascript class (ES6) where you define methods without business logic, just the definition.
+  
+* **Implementations**
+  An implementation is a class that implements all the methods defined on the interface, here is where your business logic should be placed
 
-* **Unit testing**
-  This is basically the ability to isolate your Service/Implementation code to be tested, the isolation can be achieved using mocks, *NodeSpring* has a mechanism to do it.
+* **Unit tests**
+  They are Javascript classes (ES6) where you test every single method of your Service/Implementation using the mechanism provided by *NodeSpring*
 
 
 ## How they looks like?
+
 A *Controller* looks like this:
 
 ```javascript
@@ -57,6 +53,7 @@ export default class MyClass {
 }
 ```
 
+
 A service like this:
 
 ```javascript
@@ -79,6 +76,7 @@ export default class MyUsersService {
   }
 }
 ```
+
 
 An implementation like this:
 
@@ -110,6 +108,55 @@ export default class DBServiceMongoImpl {
 ```
 
 Notice that you aren't using MongoDB directly in your service layer, instead, you have a specific implementation to deal with DB operations, if the database engine needs to be changed in the future, you only need to create a new implementation of the interface **DBService**.
+
+
+A Unit Test looks like this:
+
+```javascript
+import {Mock, Test, Before, InjectMocks, TestClass} from 'nodespring'
+
+import MyUsersService from '../services/MyUsersService'
+import DBService from './../interfaces/DBService'
+
+
+@TestClass
+export default class MyUsersServiceTest {
+
+  @Mock(DBService)
+  dbServiceMock
+  
+  @InjectMocks(MyUsersService)
+  myUsersService
+  
+  @Before
+  initTest() {
+    // stuff before test
+  }
+  
+  @Test
+  test1(assert) {
+    this.dbServiceMock.saveEntity = (entityType, entity) => {
+    
+      // Simulating async behavior
+      setTimeout(() => {
+      
+        // You can use all the methods in "assert" npm package
+        assert.equal(true, true)
+        
+        // Call done() method to finish the current test like in NodeUnit
+        assert.done()
+      }, 5000)
+    }
+  }
+  
+  @Test
+  test2(assert) {
+    assert.ok(true)
+    assert.done()
+  }
+}
+
+```
 
 
 ## Examples
