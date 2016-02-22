@@ -257,7 +257,7 @@ footer {
 
   header, section, footer {
     float:none;
-    position:static;
+    position:relative;
     width:auto;
   }
 
@@ -277,7 +277,7 @@ footer {
   }
 
   header ul {
-    position:absolute;
+    position:relative;
     right:50px;
     top:52px;
   }
@@ -293,7 +293,7 @@ footer {
   }
 
   header ul, header p.view {
-    position:static;
+    position:relative;
   }
 
   pre, code {
