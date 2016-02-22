@@ -49,16 +49,19 @@ export function TestClass(testClass) {
       Object.assign(assertInstance, assert)
 
       assertInstance.done = () => {
+        let passedSymbol = process.platform === 'win32' ? 'OK' : '✔'
+        let failedSymbol = process.platform === 'win32' ? 'FAIL' : '✘'
+
         if(assertInstance.ok.lastStack) {
 
-          console.log(clc.red('  ✘', method))
+          console.log(clc.red('  ' + failedSymbol, method))
           console.log(clc.red('   ', assertInstance.ok.lastStack), '\n')
 
           methodStatus.failed.push(method)
           resolve()
           assertInstance.ok.lastStack = null
         } else {
-          console.log(clc.green('  ✔', method), '\n')
+          console.log(clc.green('  ' + passedSymbol, method), '\n')
 
           methodStatus.success.push(method)
           resolve()

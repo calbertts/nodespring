@@ -3,7 +3,7 @@
 NodeSpring is a framework to create NodeJS applications using common patterns used in other programming languages like Java and frameworks like Spring.
 
 ```bash
-npm install nodespring
+$ npm install nodespring
 ```
 
 
@@ -28,8 +28,7 @@ The concepts used by NodeSpring:
 
 ## How they looks like?
 
-A *Controller* looks like this:
-
+*Controller*:
 ```javascript
 import {Controller, Get, Post, Inject} from 'nodespring'
 import MyUsersService from '../services/MyUsersService'
@@ -54,8 +53,7 @@ export default class MyClass {
 ```
 
 
-A *Service* like this:
-
+*Service*:
 ```javascript
 import {Service, Inject} from 'nodespring'
 import DBService from '../interfaces/DBService'
@@ -78,12 +76,27 @@ export default class MyUsersService {
 ```
 
 
-An *Implementation* like this:
+*Interface*:
+```javascript
+import {Interface} from 'nodespring'
 
+
+@Interface
+export default class DBService {
+
+  find(entityType, entity) {}
+  getEntityList(entityType) {}
+}
+
+```
+
+
+*Implementation*:
 ```javascript
 import {Implements, Inject} from 'nodespring'
 import DBService from './../interfaces/DBService'
 // import your mongo library
+
 
 @Implements(DBService)
 export default class DBServiceMongoImpl {
@@ -110,7 +123,7 @@ export default class DBServiceMongoImpl {
 Notice that you aren't using MongoDB directly in your service layer, instead, you have a specific implementation to deal with DB operations, if the database engine needs to be changed in the future, you only need to create a new implementation of the interface **DBService**.
 
 
-A *Unit Test* looks like this:
+*Unit Test*:
 
 ```javascript
 import {Mock, Test, Before, InjectMocks, TestClass} from 'nodespring'
@@ -130,7 +143,7 @@ export default class MyUsersServiceTest {
   
   @Before
   initTest() {
-    // stuff before test
+    // stuff before each test
   }
   
   @Test
