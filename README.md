@@ -1,6 +1,6 @@
 # NodeSpring
 
-NodeSpring is a framework to create NodeJS applications using common patterns used in other programming languages and frameworks like Java and Spring.
+NodeSpring is a framework to create NodeJS applications using common patterns used in other programming languages like Java and frameworks like Spring.
 
 ```bash
 npm install nodespring
@@ -54,7 +54,7 @@ export default class MyClass {
 ```
 
 
-A service like this:
+A *Service* like this:
 
 ```javascript
 import {Service, Inject} from 'nodespring'
@@ -78,7 +78,7 @@ export default class MyUsersService {
 ```
 
 
-An implementation like this:
+An *Implementation* like this:
 
 ```javascript
 import {Implements, Inject} from 'nodespring'
@@ -110,7 +110,7 @@ export default class DBServiceMongoImpl {
 Notice that you aren't using MongoDB directly in your service layer, instead, you have a specific implementation to deal with DB operations, if the database engine needs to be changed in the future, you only need to create a new implementation of the interface **DBService**.
 
 
-A Unit Test looks like this:
+A *Unit Test* looks like this:
 
 ```javascript
 import {Mock, Test, Before, InjectMocks, TestClass} from 'nodespring'
