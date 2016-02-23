@@ -56,8 +56,8 @@
 
 body {
   background-color: #fff;
-  padding:50px;
-  font: 14px/1.5 "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  padding:20px;
+  font: 15px/1.5 "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color:#727272;
   font-weight:400;
 }
@@ -244,7 +244,7 @@ footer {
   width:270px;
   float:left;
   position:fixed;
-  bottom:50px;
+  bottom:20px;
   -webkit-font-smoothing:subpixel-antialiased;
 }
 
@@ -278,8 +278,8 @@ footer {
 
   header ul {
     position:relative;
-    right:50px;
-    top:52px;
+    /*right:50px;
+    top:52px;*/
   }
 }
 
@@ -321,4 +321,8 @@ footer {
     font-size:12pt;
     color:#444;
   }
+}
+
+pre {
+  font-size: 14px;
 }
