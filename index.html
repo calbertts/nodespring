@@ -5,8 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>NodeSpring by calbertts</title>
 
+    <link href='https://fonts.googleapis.com/css?family=Noto+Sans' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/github-light.css">
+
     <meta name="viewport" content="width=device-width">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -15,8 +17,8 @@
   <body>
     <div class="wrapper">
       <header>
-        <h1>NodeSpring</h1>
-        <p>Dependency Injection for NodeJS using Javascript decorators</p>
+        <h1 style="color: #329513">NodeSpring</h1>
+        <p style="color: #A7A7A7">Dependency Injection for NodeJS using Javascript decorators</p>
 
         <div style="min-height: 450px;">
           <a href="#getStarted">Getting Started</a> <br/><br/>
@@ -55,6 +57,8 @@
           Getting started
         </h3>
 
+        <br/><br/>
+
         <h3>
           <a id="controllers" class="anchor" href="#" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
           Controllers
@@ -88,6 +92,8 @@ export default class MyController {
 }</pre>
 
         <p>Now we can access this controller in this way: <a href="#">http://localhost:8080/users</a></p>
+
+        <br/><br/>
 
         <h3>
         <a id="httpMethods" class="anchor" href="#" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
@@ -134,13 +140,15 @@ getJSONObject(id, name) {
         <p>Also, there are decorators to the other HTTP methods: </p>
         <p><b>&nbsp;&nbsp;&nbsp;&nbsp;@Put, @Delete, @Update</b></p>
 
+        <br/><br/>
+
         <h3>
         <a id="services" class="anchor" href="#" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
           Services
         </h3>
 
         <p>
-          A Service is a Javascript class where you define the methods to access to a specific module of your application, let's understand
+          A Service is a Javascript class where you define the methods to access a specific module of your application, let's understand
           a module as a unit on your business logic, don't think on NodeJS modules, let's assume that a module is a set of NodeJS modules which
           have a specific responsibility.
           <br/><br/>
@@ -154,11 +162,11 @@ getJSONObject(id, name) {
         </h3>
 
         <p>
-          This decoractor expects a class to be used as a Service, all the services are <i>singleton</i>, it means, only one instance
+          This decoractor expects a class to be used as a Service, all the services are <b><i>singleton</i></b>, it means, only one instance
           of this class is going to be created and shared through all the application.
           <br/><br/>
           Each time a Service is <a href="#dependencyInjection">injected</a>, the unique instance is used, that's why all the Services
-          have to be <i>stateless</i>.
+          must to be <i>stateless</i>.
         </p>
 
         <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {Service} from 'nodespring'
@@ -168,6 +176,191 @@ export default class MyService {
 
   // Methods to communicate with the module
 }</pre>
+
+        <br/><br/>
+
+        <h3>
+          <a id="dependencyInjection" class="anchor" href="#dependencyInjection" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+          Dependency Injection
+        </h3>
+
+        <p>
+          The Dependency Injection (DI) is a common pattern used in several frameworks, if you're a Java programmer and have worked with frameworks like Spring,
+          you will miss some of those great features on NodeJS.
+
+          <br/><br/>
+
+          Yes, NodeJS is not Java, I'm not pretending to make it like that, but honestly, going through several DI frameworks for NodeJS, I found them too verbose and
+          compilcated to understad, so that's why, taking advantage of the <i>decorators</i> which are an <b>experimental</b> feature on Javascript, I've created
+          this to make things like DI easier.
+        </p>
+
+        <h3>
+          <a id="decInterface" class="anchor" href="#decInterface" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+          @Interface
+        </h3>
+
+        <p>
+          This decoractor expects a class to be used as an Interface. <br/>
+          An Interface basically represents the shape of an object without specify its behavior, in this way, each time you need to use an object from
+          that class, you aren't going to deal with a specific implementation of it, but with its interface. The only thing you need to know about that
+          class is what it's offering, what are the methods you can use, the implementation details doesn't matter to other modules.
+        </p>
+
+        <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {Interface} from 'nodespring'
+
+@Interface
+export default class DBService {
+
+  saveEntity(entity) {}
+  getEntityList(entityType) {}
+}</pre>
+        <p>
+          As you notice, we are only specifying what are the methods that other modules will be able to use.
+        </p>
+
+        <h3>
+          <a id="decImplements" class="anchor" href="#decImplements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+          @Implements
+        </h3>
+
+        <p>
+          This decoractor expects a class to be used as an Implementation. <br/>
+          An Implementation is where you define the behaviour of a specific Interface, where all your third-party libraries are used.
+
+          <br/><br/>
+
+          Following, a dummy example what an implementation does:
+        </p>
+
+        <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {Implements} from 'nodespring'
+import DBService from './DBService'
+
+// Assuming you're using mongoose to create your models
+import EntityModel from './models/EntityModel'
+
+
+@Implements(DBService)
+export default class DBServiceMongoDB {
+
+  saveEntity(entity) {
+    new EntityModel({
+      id: '1',
+      name: 'entity'
+    }).save(() => {
+      console.log('saved sucessfully!')
+    })
+  }
+
+  deleteEntity(id) {
+    EntityModel.find({id: id}).remove(() => {
+      console.log('Removed!')
+    })
+  }
+}</pre>
+
+        <p>
+          As you can see, all the details are here, if tomorrow we need to start using MySQL instead of MongoDB, the only thing we will need to do
+          is to create another implementation of <b>DBService</b> and the other modules don't need to be aware about it because they
+          <a href="#decInject">inject</a> using an interface and <b><i>NodeSpring</i></b> resolves which implementation has to be used.
+        </p>
+
+        <h3>
+          <a id="decInject" class="anchor" href="#decInject" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+          @Inject
+        </h3>
+
+        <p>
+          This decorator expects an <a href="decInterface">Interface</a> as a parameter and it can be used only in class properties. <br/>
+          This is the magic part, we are going to inject our <b>DBService</b> in <b>MyService</b> and make use of it.
+        </p>
+
+        <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {Service, Inject} from 'nodespring'
+import DBService from './DBService'
+
+@Service
+export default class MyService {
+
+  @Inject(DBService)
+  dbService
+
+  saveEntity() {
+    let entity = {
+      id: 1,
+      name: 'entityName'
+    }
+
+    dbService.saveEntity(entity)
+  }
+
+  deleteEntity() {
+    let id = 1
+
+    dbService.deleteEntity(id)
+  }
+}</pre>
+        <p>Here, you can notice that <b>MyService</b> doesn't know I'm using MongoDB, also, I'm not making directly:</p>
+
+        <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5afac; background: #fff0eb">dbService = new DBServiceMongoDB()</pre>
+
+        <p>
+          Because in this way, I'd be creating a hard dependency between those classes and testing this class will be harder.
+          <br/>
+          Instead, I'm injecting using the interface and <b>NodeSpring</b> will resolve at runtime the implementation that needs to be used.
+          <br/><br/>
+          This resolves several problems, the first one is that our code is now decoupled, which is great,
+          the other one is unit testing, I'll be able to mock all those interfaces providing fake implementations in order to test a specific
+          implementation with real isolation.
+          <br/><br/>
+          Finally, all of this ends with a code easier to maintain and be modified by other programmers.
+          <br/><br/>
+          <b>There are some considerations about injecting dependencies:</b>
+          <ul>
+            <li>
+              Implementations can be injected using the interface on Controllers, Services and other Implementations
+            </li>
+            <br/>
+            <li>
+              Services can be injected on Controllers, Implementations and other Services
+            </li>
+            <br/>
+            <li>
+              Controllers cannot be injected in other places, it supposed they are end-points, so it doesn't make sense thinking on inject them
+            </li>
+            <br/>
+            <li>
+              Controllers, Services and Implementations are <b>singleton</b> by default, it means, only one instance is going to be used during the application execution, it's
+              supposed they are <i>stateless</i>.
+
+              <br/><br/>
+              With Implementations you can have several instances by using:
+              <br/>
+              <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">@Implements(DBService, 'prototype')</pre>
+              In this way, a new instance of the implementation is created each time the interface <b>DBService</b> is injected.
+            </li>
+          </ul>
+        </p>
+
+        <h3>
+          <a id="decPostInject" class="anchor" href="#decPostInject" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+          @PostInject
+        </h3>
+
+        <p>
+          This decorator expects a method to be executed once all the dependencies injected are resolved. <br/>
+          Although you can use the <b><i>constructor</i></b> in each Javascript class, it's important to know that it's possible
+          all the declared dependencies aren't resolved at the moment when the constructor is called, this is because all the dependencies are injected
+          setting them in the instance which is being created.
+        </p>
+
+        <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {PostInject} from 'nodespring'
+
+@PostInject
+init() {
+  // All the dependencies were injected
+}
+</pre>
+
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/calbertts">calbertts</a></p>
