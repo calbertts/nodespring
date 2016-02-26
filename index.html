@@ -57,6 +57,37 @@
           Getting started
         </h3>
 
+        <p>
+          Start with <b>NodeSpring</b>, it's very easy:
+        </p>
+
+        <p>Installation:</p>
+
+        <pre class="prettyprint lang-bash" style="padding: 15px; border: 1px solid #e5e5e5">npm install nodespring --save</pre>
+
+        <p>
+          The main file must be a class which inherits from <b>ExpressApp</b>:
+        </p>
+
+        <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {ExpressApp} from 'nodespring'
+
+export default class App extends ExpressApp {
+
+  constructor() {
+    super({
+      workDir: [__dirname],
+      port: 5000
+    })
+  }
+}
+
+new App()
+</pre>
+        <p>
+          Using <i>Express</i> is optional, if you don't want to use it, you can create your own implementation
+          of <b>NodeSpringApp</b> <a href="#decInterface">Interface</a>.
+        </p>
+
         <br/><br/>
 
         <h3>
@@ -299,7 +330,7 @@ export default class MyService {
     dbService.deleteEntity(id)
   }
 }</pre>
-        <p>Here, you can notice that <b>MyService</b> doesn't know I'm using MongoDB, also, I'm not making directly:</p>
+        <p>Here, you can notice that <b>MyService</b> doesn't know I'm using MongoDB, also, I'm not creating the instance directly:</p>
 
         <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5afac; background: #fff0eb">dbService = new DBServiceMongoDB()</pre>
 
@@ -360,6 +391,176 @@ init() {
   // All the dependencies were injected
 }
 </pre>
+        <br/><br/>
+
+        <h3>
+          <a id="unitTesting" class="anchor" href="#unitTesting" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+          Unit Testing
+        </h3>
+
+        <p>
+          One of the good parts of using Dependency Injection is how easy is to test our code, the injection will allow us to isolate our code without pain.
+          <br/><br/>
+          You can mock the injected dependencies in each test, it allows you to define the way that a certain object behaves, this is pretty similar what you can do with Mockito in Java ecosystem.
+        </p>
+
+        <h3>
+          <a id="decTestClass" class="anchor" href="#decTestClass" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+          @TestClass
+        </h3>
+
+        <p>
+          This decorator expects an class as a parameter, it's basically to tell to NodeSpring that it's a <i>testing class</i> in order to prepare all the necessary stuff to execute each test.<br/>
+        </p>
+
+        <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {TestClass} from 'nodespring'
+
+@TestClass
+export default class MyServiceTest {
+
+  ...
+}</pre>
+
+        <h3>
+          <a id="decMock" class="anchor" href="#decMock" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+          @Mock
+        </h3>
+
+        <p>
+          This decorator expects an <a href="#decInterface">Interface</a> as a parameter and it can be used only in class properties. <br/>
+          Mocks an interface basically will assign a fake implementation that you can adjust during the test in order to isolate the code you're testing.
+        </p>
+
+        <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {TestClass, Mock} from 'nodespring'
+import DBService from './DBService'
+
+@TestClass
+export default class MyServiceTest {
+
+  @Mock(DBService)
+  dbServiceMock
+
+  ...
+}</pre>
+
+        <h3>
+          <a id="decInjectMocks" class="anchor" href="#decInjectMocks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+          @InjectMocks
+        </h3>
+
+        <p>
+          This decorator expects an <a href="#decInterface">Interface</a> as a parameter and it can be used only in class properties. <br/>
+          When you're testing, you have basically two things: the dependencies and the class you want to test.
+          <br/><br/>
+          Once, you have mocked all the dependencies, you will need to inject those fake implementations in the real object you're gonna test.
+        </p>
+
+        <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {TestClass, Mock, InjectMocks} from 'nodespring'
+import DBService from './DBService'
+import MyService from './MyService'
+
+@TestClass
+export default class MyServiceTest {
+
+  @Mock(DBService)
+  dbServiceMock
+
+  @InjectMocks(MyService)
+  myService
+
+  ...
+}</pre>
+
+        <h3>
+          <a id="decBefore" class="anchor" href="#decBefore" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+          @Before
+        </h3>
+
+        <p>
+          This decorator expects a method as a parameter.
+          <br/><br/>
+          Sometimes, it's necessary to prepare objects or data before to run each test, but remember, those tests should be stateless, it means, you have to prepare all you need for each test in a separate way, they shouldn't depend on any other test.
+          This is essentially because you can have asynchronous operations inside of the class you're testing, it means, you cannot guarantee in which order the tests
+          are going to finish.
+          <br/><br/>
+          This method decorated with @Before is executed just before to call each test, so, if you have three tests, the <i>before</i> method is execute three times.
+          This is useful when you need to prepare something that is common to all the tests just before to start.
+        </p>
+
+        <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {TestClass, Mock, InjectMocks} from 'nodespring'
+import DBService from './DBService'
+import MyService from './MyService'
+
+@TestClass
+export default class MyServiceTest {
+
+  @Mock(DBService)
+  dbServiceMock
+
+  @InjectMocks(MyService)
+  myService
+
+  @Before
+  initTest() {
+    // stuff before test
+  }
+}</pre>
+
+        <h3>
+          <a id="decTest" class="anchor" href="#decTest" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+          @Test
+        </h3>
+
+        <p>
+          This decorator expects a method as a parameter.
+          <br/><br/>
+          Each method that is a test, must be decorated with this, otherwise, it isn't going to be called, unless you call it from a test method.
+          <br/><br/>
+          Additionally, each test method will receive an <i>assert</i> object, that is basically an instance of the great npm package:
+          <a href="https://www.npmjs.com/package/assert">assert</a>.
+          <br/><br/>
+          In order to support asynchronous testing, there's an additional method that you can call when your test is completed: <i>assert.done()</i>.
+        </p>
+
+        <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {TestClass, Mock, InjectMocks} from 'nodespring'
+import DBService from './DBService'
+import MyService from './MyService'
+
+@TestClass
+export default class MyServiceTest {
+
+  @Mock(DBService)
+  dbServiceMock
+
+  @InjectMocks(MyService)
+  myService
+
+  @Before
+  initTest() {
+    // stuff before test
+  }
+
+  @Test
+  test1(assert) {
+    this.dbServiceMock.saveEntity = (entityType, entity) => {
+
+      // Simulating async behavior
+      setTimeout(() => {
+
+        // You can use all the methods in "assert" npm package
+        assert.equal(true, true)
+
+        // Call done() method to finish the current test like in NodeUnit
+        assert.done()
+      }, 5000)
+    }
+  }
+}</pre>
+
+        <br/><br/>
+
+        Hope you find <b>NodeSpring</b> useful, this is in an early stage, but it's functional.
+        All kind of PRs are welcome, even with this docs, my english is still in progress ;)
 
       </section>
       <footer>
