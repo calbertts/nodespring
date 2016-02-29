@@ -1,6 +1,6 @@
 {
   "name": "nodespring",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Dependency Injection for NodeJS using Javascript decorators",
   "main": "index.js",
   "dependencies": {
