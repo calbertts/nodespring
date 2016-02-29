@@ -1,4 +1,9 @@
-import {ModuleContainer} from '../core/moduleContainer'
+/**
+ * Service decorator
+ * @author calbertts
+ */
+
+import ModuleContainer from '../core/moduleContainer'
 
 
 export function Service(target) {

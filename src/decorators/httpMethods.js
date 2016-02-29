@@ -1,10 +1,10 @@
 /**
- * HTTP Methods
- *
+ * Decorators for HTTP Methods
  * @author calbertts
  */
 
-import {ModuleContainer} from '../core/moduleContainer'
+import ModuleContainer from '../core/moduleContainer'
+
 
 export function Get() {
 

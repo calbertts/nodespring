@@ -1,19 +1,23 @@
+/**
+ * Testing decorators
+ * @author calbertts
+ */
+
 import clc from 'cli-color'
 import t from 'exectimer'
 import assert from '../core/assert'
 
-import {ModuleContainer} from '../core/moduleContainer'
+import ModuleContainer from '../core/moduleContainer'
+import NodeSpringUtil from '../core/nodeSpringUtil'
+
 
 var injectMocksCllbk
 var localMocksInjectedCllbk
 var mocksToInject = {}
 
-let isClass = (arg) => {
-  return arg && arg.constructor === Function
-}
 
 export function TestClass(testClass) {
-  if(!isClass(testClass))
+  if(!NodeSpringUtil.isClass(testClass))
     throw new TypeError('A class was expected to test')
 
   let testClassObj = new testClass()
@@ -133,11 +137,13 @@ export function InjectMocks(type) {
     let metaInstance
     let objToTest
 
+    console.log(type.name)
+
     switch(type.moduleType) {
 
       case 'implementation' :
         metaInstance = ModuleContainer.getModuleContainer()[type.interfaceName]
-        objToTest = new metaInstance.impl()
+        objToTest = metaInstance.impl
       break
 
       case 'service' :

@@ -1,35 +1,33 @@
 /**
  * Dependency Management
- *
  * @author calbertts
  */
 
-import {ModuleContainer} from '../core/moduleContainer'
+import ModuleContainer from '../core/moduleContainer'
+
 
 global.implContext = null
 
 export function Inject(typeToInject) {
-
-  //console.log('analizing dependency', typeToInject.name, ' for ', global.implContext ? global.implContext.name : 'bad')
 
   return (target, property, descriptor) => {
     descriptor.writable = true
 
     let targetName = global.implContext ? global.implContext.name : target.constructor.name
 
-    //console.log('executing dependency', typeToInject.name, ' for ', targetName)
+    if(typeToInject.moduleType === 'controller') {
+      throw new TypeError('You cannot inject a Controller as a dependency, please take a look on ' + targetName)
+    }
 
     ModuleContainer.addDependency(targetName, property, typeToInject)
   }
 }
 
-export function Implements(type) {
+export function Implements(type, scope = 'singleton') {
   global.implContext = type
 
-  //console.log('analizing implementation', type.name)
-
   return (target, property, descriptor) => {
-    //console.log('executing implementation', type.name, ' for ', target.name)
+    target.scope = scope
     target.interfaceName = type.name
     target.moduleType = 'implementation'
 
@@ -52,4 +50,9 @@ export function Interface(interfaceBase) {
 
 export function PostInject(target, property, descriptor) {
   ModuleContainer.addPostInjectMethod(global.implContext.name, property)
+}
+
+export var Scope = {
+  SINGLETON: 'singleton',
+  PROTOTYPE: 'prototype'
 }
