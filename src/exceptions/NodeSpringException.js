@@ -16,7 +16,16 @@ function NodeSpringException(message, stackStartFunction, stackOffset, stackLimi
   if(stackOffset !== undefined) {
     Error.prepareStackTrace = (err, stack) => {
       let stack2 = stack.slice(stackOffset, stackLimit || stack.length)
-      return stack2
+
+      console.error('\n', this.name, message)
+      stack2.forEach((frame) => {
+        console.error('    at %s (%s:%d:%d)'
+          , frame.getFunctionName() || 'anonymous'
+          , frame.getFileName()
+          , frame.getLineNumber()
+          , frame.getColumnNumber()
+        )
+      })
     }
   }
 
