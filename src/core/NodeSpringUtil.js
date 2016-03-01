@@ -55,7 +55,7 @@ export default class NodeSpringUtil {
 
     if(typeof exception.stack === 'string') {
       console.error('\n', exception.stack)
-    } else {
+    }/* else {
       console.error('\n', exception.name, exception.message)
       exception.stack.forEach((frame) => {
         console.error('    at %s (%s:%d:%d)'
@@ -65,9 +65,9 @@ export default class NodeSpringUtil {
           , frame.getColumnNumber()
         )
       })
-    }
+    }*/
 
-    process.exit(1)
+    throw exception
   }
 
   /**

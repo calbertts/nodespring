@@ -108,7 +108,6 @@ export default class ModuleContainer {
                 handleResponse(data)
               })
               .catch((err) => {
-                console.error(err)
                 handleResponse([])
               })
           } else {
