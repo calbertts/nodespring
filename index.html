@@ -18,6 +18,7 @@
     <div class="wrapper">
       <header>
         <h1 style="color: #329513">NodeSpring</h1>
+        <h6 style="color: #A7A7A7">v0.0.13</h6>
         <p style="color: #A7A7A7">Dependency Injection for NodeJS using Javascript decorators</p>
 
         <div style="min-height: 450px;">
@@ -56,17 +57,16 @@
           <a id="getStarted" class="anchor" href="#" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
           Getting started
         </h3>
-
         <p>
           Start with <b>NodeSpring</b>, it's very easy:
         </p>
 
         <p>Installation:</p>
 
-        <pre class="prettyprint lang-bash" style="padding: 15px; border: 1px solid #e5e5e5">npm install nodespring --save</pre>
+        <pre class="prettyprint lang-bash" style="padding: 15px; border: 1px solid #e5e5e5">$ npm install nodespring --save</pre>
 
         <p>
-          The main file must be a class which inherits from <b>ExpressApp</b>:
+          The main file must be a class that inherits from <b>ExpressApp</b>:
         </p>
 
         <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">import {ExpressApp} from 'nodespring'
@@ -75,17 +75,27 @@ export default class App extends ExpressApp {
 
   constructor() {
     super({
-      workDir: [__dirname],
-      port: 5000
+        port: 5000,
+        classDir: __dirname,
+        implConfig: {
+          '/interfaces/DBService': './services/DBServiceImpl'
+        }
     })
   }
 }
 
-new App()
+new App().start()
 </pre>
         <p>
-          Using <i>Express</i> is optional, if you don't want to use it, you can create your own implementation
-          of <b>NodeSpringApp</b> <a href="#decInterface">Interface</a>.
+          Using <i>Express</i> is optional, if you don't want to use it, you can create your own middleware
+          extending from <b>NodeSpringApp</b>.
+        </p>
+
+        <p>
+          <b>port:</b> The port where your server is going to run <br/>
+          <b>classDir:</b> The directory where all your classes are placed <br/>
+          <b>implConfig:</b> If you have several implementations for the same interface, would be necessary to define, which one of them is going<br/>
+          to be used
         </p>
 
         <br/><br/>
@@ -366,7 +376,7 @@ export default class MyService {
               <br/><br/>
               With Implementations you can have several instances by using:
               <br/>
-              <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">@Implements(DBService, 'prototype')</pre>
+              <pre class="prettyprint lang-js" style="padding: 15px; border: 1px solid #e5e5e5">@Implements(DBService, Scope.PROTOTYPE)</pre>
               In this way, a new instance of the implementation is created each time the interface <b>DBService</b> is injected.
             </li>
           </ul>
