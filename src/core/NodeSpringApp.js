@@ -15,11 +15,6 @@ export default class NodeSpringApp extends Abstract {
     super()
     this.config = config
 
-    /*if (new.target === NodeSpringApp) {
-      let noInstantiable = new NodeSpringException("Cannot construct NodeSpringApp instances directly", this, 1);
-      NodeSpringUtil.throwNodeSpringException(noInstantiable)
-    }*/
-
     // Checking methods that need to be implemented
     let requiredMethods = {
       bindURL: ['method', 'url', 'callback'],
@@ -41,7 +36,7 @@ export default class NodeSpringApp extends Abstract {
         let implementedMethodParams = NodeSpringUtil.getArgs(this[methodName])
 
         methodParams.forEach((officialParam) => {
-          if(officialParam, implementedMethodParams.indexOf(officialParam) < 0) {
+          if(implementedMethodParams.indexOf(officialParam) < 0) {
             let missingParameter = new NodeSpringException('The parameter "' + officialParam + '" is not present on the implemented method "' + methodName + '(...)" in the class ' + this.__proto__.__proto__.constructor.name, undefined, 6)
             NodeSpringUtil.throwNodeSpringException(missingParameter)
           }
@@ -51,7 +46,7 @@ export default class NodeSpringApp extends Abstract {
   }
 
   start() {
-    ModuleContainer.init(this)
-    ModuleContainer.loadModules(this.config.classDir)
+    ModuleContainer.init(this.config.classDir, this, this.config.implConfig, this.config.logging, this.config.loggingSync)
+    ModuleContainer.loadModules()
   }
 }

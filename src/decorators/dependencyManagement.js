@@ -4,6 +4,7 @@
  */
 
 import ModuleContainer from '../core/moduleContainer'
+import path from 'path'
 import Abstract from '../core/Abstract'
 import NodeSpringUtil from '../core/NodeSpringUtil'
 import NodeSpringException from '../exceptions/NodeSpringException'
@@ -14,6 +15,16 @@ global.implContext = null
 
 
 /**
+ * Enumeration to specify the scope type for implementations
+ * @type {{SINGLETON: string, PROTOTYPE: string}}
+ */
+export var Scope = {
+  SINGLETON: 'singleton',
+  PROTOTYPE: 'prototype'
+}
+
+
+/**
  * Decorator to inject a dependency using an interface
  * @param typeToInject
  * @returns {Function}
@@ -21,10 +32,12 @@ global.implContext = null
  */
 export function Inject(typeToInject) {
 
+  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
+
   return (target, property, descriptor) => {
     descriptor.writable = true
 
-    let targetName = global.implContext ? global.implContext.name : target.constructor.name
+    let targetName = global.implContext ? global.implContext.packagePath : packagePath
 
     if(typeToInject.moduleType === 'controller') {
       throw new TypeError('You cannot inject a Controller as a dependency, please take a look on ' + targetName)
@@ -42,15 +55,26 @@ export function Inject(typeToInject) {
  * @returns {Function}
  * @constructor
  */
-export function Implements(type, scope = 'singleton') {
+export function Implements(type, scope = Scope.SINGLETON) {
   global.implContext = type
 
   return (target, property, descriptor) => {
     target.scope = scope
     target.interfaceName = type.name
+    target.interfacePackagePath = type.packagePath
     target.moduleType = 'implementation'
 
     global.implContext = null
+
+    let x = ModuleContainer.implConfig
+    let preConfiguredImpl = ModuleContainer.implConfig[type.packagePath]
+
+    if(preConfiguredImpl) {
+      if(target.name !== path.basename(preConfiguredImpl)) {
+        NodeSpringUtil.error('Ignored implementation ' + target.name)
+        return
+      }
+    }
 
     ModuleContainer.addImplementation(type, target)
   }
@@ -64,10 +88,12 @@ export function Implements(type, scope = 'singleton') {
  * @constructor
  */
 export function Interface(interfaceBase) {
-  let interfaceClass = arguments[0]
-  interfaceBase.moduleType = 'interface'
+  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
 
   class MockedInterface extends Abstract {
+    static moduleType = 'interface'
+    static packagePath = packagePath
+
     constructor() {
       super()
     }
@@ -98,15 +124,5 @@ export function Interface(interfaceBase) {
  * @constructor
  */
 export function PostInject(target, property, descriptor) {
-  ModuleContainer.addPostInjectMethod(global.implContext.name, property)
-}
-
-
-/**
- * Enumeration to specify the scope type for implementations
- * @type {{SINGLETON: string, PROTOTYPE: string}}
- */
-export var Scope = {
-  SINGLETON: 'singleton',
-  PROTOTYPE: 'prototype'
+  ModuleContainer.addPostInjectMethod(global.implContext.packagePath, property)
 }

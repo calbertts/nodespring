@@ -8,6 +8,8 @@ import util from 'util'
 
 export default class NodeSpringUtil {
 
+  static logging = false
+
   /**
    * Method to get the arguments' names
    *
@@ -35,15 +37,31 @@ export default class NodeSpringUtil {
    * Send all the console.log/error output to a file
    * This is pretty useful to see a synchronous log
    */
-  static configureLoggingOut() {
-    let logFile = fs.createWriteStream('nodespring.log', { flags: 'w' });
-    let logStdout = process.stdout;
-
-    console.log = function () {
-      logFile.write(util.format.apply(null, arguments) + '\n');
-      logStdout.write(util.format.apply(null, arguments) + '\n');
+  static configureLoggingOut(logging, loggingSync) {
+    if(logging) {
+      NodeSpringUtil.logging = logging
     }
-    console.error = console.log;
+
+    if(loggingSync) {
+      let logFile = fs.createWriteStream('nodespring.log', { flags: 'w' });
+      let logStdout = process.stdout;
+
+      console.log = function () {
+        logFile.write(util.format.apply(null, arguments) + '\n');
+        logStdout.write(util.format.apply(null, arguments) + '\n');
+      }
+      console.error = console.log;
+    }
+  }
+
+  static log() {
+    if(NodeSpringUtil.logging)
+      console.log.apply(this, arguments)
+  }
+
+  static error() {
+    if(NodeSpringUtil.logging)
+      console.error.apply(this, arguments)
   }
 
   /**
@@ -55,17 +73,7 @@ export default class NodeSpringUtil {
 
     if(typeof exception.stack === 'string') {
       console.error('\n', exception.stack)
-    }/* else {
-      console.error('\n', exception.name, exception.message)
-      exception.stack.forEach((frame) => {
-        console.error('    at %s (%s:%d:%d)'
-          , frame.getFunctionName() || 'anonymous'
-          , frame.getFileName()
-          , frame.getLineNumber()
-          , frame.getColumnNumber()
-        )
-      })
-    }*/
+    }
 
     throw exception
   }
@@ -78,5 +86,40 @@ export default class NodeSpringUtil {
    */
   static isClass(param) {
     return param && param.constructor === Function
+  }
+
+  /**
+   * Returns the stack from the caller discarding the two first elements
+   * @returns {void|string|XML|*}
+   */
+  static getStack() {
+    // Save original Error.prepareStackTrace
+    var origPrepareStackTrace = Error.prepareStackTrace
+
+    // Override with function that just returns `stack`
+    Error.prepareStackTrace = function (_, stack) {
+      return stack
+    }
+
+    // Create a new `Error`, which automatically gets `stack`
+    var err = new Error()
+
+    // Evaluate `err.stack`, which calls our new `Error.prepareStackTrace`
+    var stack = err.stack
+
+    // Restore original `Error.prepareStackTrace`
+    Error.prepareStackTrace = origPrepareStackTrace
+
+    // Remove superfluous function call on stack
+    stack.shift()
+    stack.shift()
+
+    /*stack.forEach((frame) => {
+      console.log(frame.getFileName())
+    })*/
+
+    let frame = stack[0]
+
+    return frame.getFileName()//.replace(ModuleContainer.appDir, '')
   }
 }

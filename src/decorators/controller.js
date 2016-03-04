@@ -9,10 +9,13 @@ import NodeSpringUtil from '../core/NodeSpringUtil'
 
 export function Controller() {
 
+  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
+
   let args = arguments[0]
   let options = {}
 
   let addModule = (target) => {
+    target.packagePath = packagePath
     target.moduleType = 'controller'
     ModuleContainer.addController(target, options.path || target.name)
   }

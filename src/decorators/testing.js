@@ -5,25 +5,47 @@
 
 import clc from 'cli-color'
 import t from 'exectimer'
+import path from 'path'
 import assert from '../core/assert'
 
 import ModuleContainer from '../core/moduleContainer'
 import NodeSpringUtil from '../core/nodeSpringUtil'
 
 
-var injectMocksCllbk
-var localMocksInjectedCllbk
-var mocksToInject = {}
+let objectToTest = null
+let mocksToInject = {}
 
 
 export function TestClass(testClass) {
   if(!NodeSpringUtil.isClass(testClass))
     throw new TypeError('A class was expected to test')
 
+  console.log(clc.blue.bold('NodeSpring Unit Test Runner:', clc.yellow(className, '\n')))
+
   let testClassObj = new testClass()
 
-  injectMocksCllbk(testClassObj)
-  localMocksInjectedCllbk(testClassObj)
+  // Inject mocks into the object to test
+  for(let classProp in objectToTest.dependencies) {
+    let dataType = objectToTest.dependencies[classProp]
+
+    if(!mocksToInject[dataType]) {
+      console.error(clc.yellow.bold('  WARNING:'), clc.yellow('There isn\'t a mock for the dependency injected in ' + objectToTest.type.name + '.' + classProp + ' (' + path.basename(dataType) + ')\n           An empty object will be provided, but tests can fail\n'))
+      objectToTest.instance[classProp] = {}
+    } else {
+      objectToTest.instance[classProp] = mocksToInject[dataType].instance
+      mocksToInject[dataType].used = true
+      testClassObj[mocksToInject[dataType].testClassProperty] = mocksToInject[dataType].instance
+    }
+  }
+
+  // Check for mocks which aren't required
+  for(let dataType in mocksToInject) {
+    if(mocksToInject[dataType] && !mocksToInject[dataType].used) {
+      console.error(clc.yellow.bold('  WARNING:'), clc.yellow('The declared mock for ' + testClass.name + '.' + mocksToInject[dataType].testClassProperty + ' is not required on ' + objectToTest.instance.constructor.name + '\n'))
+    }
+  }
+
+  testClassObj[objectToTest.testClassProperty] = objectToTest.instance
 
   let testingMethods = Object.getOwnPropertyNames(testClass.prototype)
 
@@ -36,8 +58,6 @@ export function TestClass(testClass) {
     success: [],
     failed: []
   }
-
-  console.log(clc.blue('NodeSpring Unit Test Runner:', clc.yellow(className, '\n')))
 
   let tick = new t.Tick(className)
   tick.start()
@@ -58,20 +78,21 @@ export function TestClass(testClass) {
 
         if(assertInstance.ok.lastStack) {
 
-          console.log(clc.red('  ' + failedSymbol, method))
+          console.log(clc.red('  ' + clc.red.bold(failedSymbol), method))
           console.log(clc.red('   ', assertInstance.ok.lastStack), '\n')
 
           methodStatus.failed.push(method)
           resolve()
           assertInstance.ok.lastStack = null
         } else {
-          console.log(clc.green('  ' + passedSymbol, method), '\n')
+          console.log(clc.green('  ' + clc.green.bold(passedSymbol), method), '\n')
 
           methodStatus.success.push(method)
           resolve()
         }
       }
 
+      // Execute real method
       testClassObj[method](assertInstance)
     })
 
@@ -88,14 +109,14 @@ export function TestClass(testClass) {
     else
       console.log(' ', clc.blue('All tests have passed!'))
 
-    console.log(clc.blue('  Time:'), clc.yellow(timeStr), '\n')
+    console.log(clc.blue.bold('  Time:'), clc.yellow(timeStr), '\n')
   })
 }
 
 
 export function Mock(type) {
-  if(!type.moduleType === 'interface')
-    throw new TypeError('Mock expects an Interface as a parameter, instead ' + type.name + ' was received')
+  if(type.moduleType !== 'interface' && type.moduleType !== 'service')
+    throw new TypeError('Mock expects an Interface or a Service as a parameter, instead ' + (type.name ? type.name : 'unknown') + ' was received')
 
   return (target, property, descriptor) => {
     let mockInstance = {
@@ -105,10 +126,11 @@ export function Mock(type) {
     }
 
     descriptor.writable = true
-    mocksToInject[type.name] = mockInstance
 
-    localMocksInjectedCllbk = (testClassObj) => {
-      testClassObj[property] = mockInstance
+    mocksToInject[type.packagePath] = {
+      testClassProperty: property,
+      used: false,
+      instance: mockInstance
     }
   }
 }
@@ -135,34 +157,31 @@ export function InjectMocks(type) {
     descriptor.writable = true
 
     let metaInstance
-    let objToTest
-
-    console.log(type.name)
+    let instance
 
     switch(type.moduleType) {
 
       case 'implementation' :
-        metaInstance = ModuleContainer.getModuleContainer()[type.interfaceName]
-        objToTest = metaInstance.impl
+        metaInstance = ModuleContainer.getModuleContainer()[type.interfacePackagePath]
+        instance = metaInstance.impl
       break
 
       case 'service' :
-        metaInstance = ModuleContainer.getModuleContainer()[type.name]
-        objToTest = metaInstance.impl
+        metaInstance = ModuleContainer.getModuleContainer()[type.packagePath]
+        instance = metaInstance.impl
       break
 
       case 'controller' :
-        throw new TypeError('Testing for Controllers are not supported yet')
+        metaInstance = ModuleContainer.getModuleContainer()[type.packagePath]
+        instance = metaInstance.impl
       break
     }
 
-    for(let classProp in metaInstance.dependencies) {
-      let dataType = metaInstance.dependencies[classProp]
-      objToTest[classProp] = mocksToInject[dataType]
-    }
-
-    injectMocksCllbk = (testClassObj) => {
-      testClassObj[property] = objToTest
+    objectToTest = {
+      type: type,
+      testClassProperty: property,
+      instance: instance,
+      dependencies: metaInstance.dependencies
     }
   }
 }

@@ -4,15 +4,18 @@
  */
 
 import ModuleContainer from '../core/moduleContainer'
+import NodeSpringUtil from '../core/NodeSpringUtil'
 
 
 export function Get() {
 
+  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
   let options = {
     contentType: 'text/html'
   }
 
   let addRoute = (target, property, descriptor) => {
+    target.packagePath = packagePath
     ModuleContainer.addRoute(target, property, 'get', options.contentType)
   }
 
@@ -32,11 +35,13 @@ export function Get() {
 
 export function Post() {
 
+  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
   let options = {
     contentType: 'text/html'
   }
 
   let addRoute = (target, property, descriptor) => {
+    target.packagePath = packagePath
     ModuleContainer.addRoute(target, property, 'post', options.contentType)
   }
 

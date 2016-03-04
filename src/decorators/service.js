@@ -4,9 +4,14 @@
  */
 
 import ModuleContainer from '../core/moduleContainer'
+import NodeSpringUtil from '../core/NodeSpringUtil'
 
 
-export function Service(target) {
-  target.moduleType = 'service'
-  ModuleContainer.addService(target)
+export function Service(serviceClass) {
+  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
+
+  serviceClass.packagePath = packagePath
+  serviceClass.moduleType = 'service'
+
+  ModuleContainer.addService(serviceClass)
 }

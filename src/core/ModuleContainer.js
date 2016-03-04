@@ -15,19 +15,26 @@ import NodeSpringException from '../exceptions/NodeSpringException'
 
 // The unique module container
 global.modulesContainer = {}
-var modulesContainer = global.modulesContainer
+let modulesContainer = global.modulesContainer
 
 
 export default class ModuleContainer {
 
-  NodeSpringApp = null
-
-  static init(app, appDir) {
-    //NodeSpringUtil.configureLoggingOut()
-    ModuleContainer.NodeSpringApp = app
+  static appDir
+  static implConfig = {}
+  static nodeSpringApp = {
+    bindURL: () => {}
   }
 
-  static loadModules(appDir) {
+  static init(appDir, nodeSpringApp, implConfig, logging = false, loggingSync = false) {
+    NodeSpringUtil.configureLoggingOut(logging, loggingSync)
+
+    ModuleContainer.appDir = appDir
+    ModuleContainer.implConfig = implConfig
+    ModuleContainer.nodeSpringApp = nodeSpringApp
+  }
+
+  static loadModules() {
     let load = (path) => {
       fs.lstat(path, (err, stat) => {
         if(err)
@@ -42,19 +49,19 @@ export default class ModuleContainer {
           })
         } else {
           if(path.indexOf('.map') < 0) {
-            //console.log("Loading file => " + path)
+            NodeSpringUtil.log("Loading file => " + path)
             require(path).default
           }
         }
       })
     }
 
-    let baseDir = path_module.join(appDir)
+    let baseDir = path_module.join(ModuleContainer.appDir)
     load(baseDir)
   }
 
   static addService(moduleDef) {
-    let moduleName = moduleDef.name
+    let moduleName = moduleDef.packagePath
 
     ModuleContainer.addInterface(moduleName)
     modulesContainer[moduleName].impl = new moduleDef()
@@ -64,7 +71,7 @@ export default class ModuleContainer {
   }
 
   static addController(moduleDef, path) {
-    let moduleName = moduleDef.name
+    let moduleName = moduleDef.packagePath
 
     ModuleContainer.addInterface(moduleName)
     modulesContainer[moduleName].path = path
@@ -81,21 +88,21 @@ export default class ModuleContainer {
 
       publishedURLs.push(`/${path}/${methodInfo.methodName}`)
 
-      ModuleContainer.NodeSpringApp.bindURL(methodInfo.httpMethod, `/${path}/${methodInfo.methodName}`, (req, res) => {
+      ModuleContainer.nodeSpringApp.bindURL(methodInfo.httpMethod, `/${path}/${methodInfo.methodName}`, (req, res) => {
         let fn = moduleInfo.impl[methodInfo.methodName]
 
-        ModuleContainer.NodeSpringApp.getRequestParams(req, (params) => {
+        ModuleContainer.nodeSpringApp.getRequestParams(req, (params) => {
           let fullParams = NodeSpringUtil.getArgs(fn).map((item, index) => {
             return params[item] || (params[item + '[]'] instanceof Array ? params[item + '[]'] : [params[item + '[]']])
           })
 
           let handleResponse = (data) => {
-            ModuleContainer.NodeSpringApp.setContentTypeResponse(res, methodInfo.contentType)
+            ModuleContainer.nodeSpringApp.setContentTypeResponse(res, methodInfo.contentType)
 
             if(methodInfo.contentType === 'application/json') {
-              ModuleContainer.NodeSpringApp.sendJSONResponse(res, data)
+              ModuleContainer.nodeSpringApp.sendJSONResponse(res, data)
             } else {
-              ModuleContainer.NodeSpringApp.sendDataResponse(res, data)
+              ModuleContainer.nodeSpringApp.sendDataResponse(res, data)
             }
           }
 
@@ -119,7 +126,7 @@ export default class ModuleContainer {
   }
 
   static addRoute(moduleDef, methodName, httpMethod, contentType) {
-    let moduleName = moduleDef.constructor.name
+    let moduleName = moduleDef.packagePath
 
     ModuleContainer.addInterface(moduleName)
 
@@ -131,9 +138,9 @@ export default class ModuleContainer {
   }
 
   static validateImpl(type, impl) {
-    ModuleContainer.addInterface(type.name)
+    ModuleContainer.addInterface(type.packagePath)
 
-    //if(!modulesContainer[type.name].impl) {
+    //if(!modulesContainer[type.packagePath].impl) {
       let interfaceMethods = Object.getOwnPropertyNames(type.prototype)
       let implementationMethods = Object.getOwnPropertyNames(impl.prototype)
 
@@ -143,7 +150,7 @@ export default class ModuleContainer {
         let isMethodImplemented = implementationMethods.indexOf(methodName) >= 0
 
         if (!isMethodImplemented) {
-          let errorMessage = `The method "${methodName}" declared in ${type.name} is not implemented in ${impl.name}`
+          let errorMessage = `The method "${methodName}" declared in ${type.packagePath} is not implemented in ${impl.name}`
           let methodNotImplemented = new NodeSpringException(errorMessage, ModuleContainer.addImplementation, 1)
 
           NodeSpringUtil.throwNodeSpringException(methodNotImplemented)
@@ -153,7 +160,7 @@ export default class ModuleContainer {
             let isParamPresent = implMethodParams.indexOf(param) >= 0
 
             if (!isParamPresent) {
-              let errorMessage = `The param "${param}" declared in ${type.name}.${methodName}(...) is not present in ${impl.name}.${methodName}(...)`
+              let errorMessage = `The param "${param}" declared in ${type.packagePath}.${methodName}(...) is not present in ${impl.name}.${methodName}(...)`
               let missingParam = new NodeSpringException(errorMessage, ModuleContainer.addImplementation, 1)
 
               NodeSpringUtil.throwNodeSpringException(missingParam)
@@ -164,7 +171,7 @@ export default class ModuleContainer {
 
       return true
     /*} else {
-      console.error(`NodeSpring Error: \nThere are more than one implementations associated with the Interface: ${type.name}\nThe current implementation is: ${modulesContainer[type.name].name}\nPlease review the class: ${impl.name}, the Interfaces must only have one implementation\n`)
+     NodeSpringUtil.error(`NodeSpring Error: \nThere are more than one implementations associated with the Interface: ${type.packagePath}\nThe current implementation is: ${modulesContainer[type.packagePath].name}\nPlease review the class: ${impl.name}, the Interfaces must only have one implementation\n`)
       return false
     }*/
   }
@@ -215,7 +222,7 @@ export default class ModuleContainer {
                  * in the instance that's being created
                  */
                 Promise.all(dependenciesInstancesPromises).then((instances) => {
-                  //console.error('Promise scope', type, modulesContainer[type].scope)
+                  //NodeSpringUtil.error('Promise scope', type, modulesContainer[type].scope)
                   let mainInstance = modulesContainer[type].impl.scope === 'prototype' ? new modulesContainer[type].impl() : modulesContainer[type].impl
 
                   instances.forEach((instanceToInject) => {
@@ -235,7 +242,7 @@ export default class ModuleContainer {
                   // Resolve the complete instance to the modules which are waiting for it
                   resolve(mainInstance)
                 }).catch((err) => {
-                  console.error('Error resolving instance for', type, err)
+                  NodeSpringUtil.error('Error resolving instance for', type, err)
                 })
               })
             } else {
@@ -275,7 +282,7 @@ export default class ModuleContainer {
           modulesContainer[type].injectDependency(property, instance)
 
           let targetInstanceName = modulesContainer[type].impl.scope ? modulesContainer[type].impl.name : modulesContainer[type].impl.constructor.name
-          console.log('Dispatching an instance of ', modulesContainer[expectedType].impl.constructor.name, ' for ', targetInstanceName + '.' + property)
+          NodeSpringUtil.log('Dispatching an instance of ', modulesContainer[expectedType].impl.constructor.name, ' for ', targetInstanceName + '.' + property)
         })
       } else {
         if(!ModuleContainer.existsInterface(expectedType)) {
@@ -290,7 +297,7 @@ export default class ModuleContainer {
             modulesContainer[type].injectDependency(property, instance)
 
             let targetInstanceName = modulesContainer[type].impl.scope ? modulesContainer[type].impl.name : modulesContainer[type].impl.constructor.name
-            console.log('Dispatching an instance of ', instance.constructor.name, ' for ', targetInstanceName + '.' + property)
+            NodeSpringUtil.log('Dispatching an instance of ', instance.constructor.name, ' for ', targetInstanceName + '.' + property)
           }
         }
       }
@@ -310,7 +317,7 @@ export default class ModuleContainer {
             resolverCallbackInfo.dispatched = true
           }
         }).catch((err) => {
-          console.error('Error dispatching instance for the property', property)
+          NodeSpringUtil.error('Error dispatching instance for the property', property)
         })
       }
     }
@@ -331,13 +338,13 @@ export default class ModuleContainer {
 
   static addDependency(type, property, typeToInject) {
     ModuleContainer.addInterface(type)
-    modulesContainer[type].dependencies[property] = typeToInject.name
+    modulesContainer[type].dependencies[property] = typeToInject.packagePath
   }
 
   static addImplementation(type, impl) {
     if(ModuleContainer.validateImpl(type, impl)) {
-      modulesContainer[type.name].impl = (impl.scope === 'prototype') ? impl : new impl()
-      ModuleContainer.runInjectionResolver(type.name)
+      modulesContainer[type.packagePath].impl = (impl.scope === 'prototype') ? impl : new impl()
+      ModuleContainer.runInjectionResolver(type.packagePath)
     }
   }
 
