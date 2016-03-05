@@ -43,6 +43,8 @@ export default class NodeSpringUtil {
     }
 
     if(loggingSync) {
+      NodeSpringUtil.loggingSync
+
       let logFile = fs.createWriteStream('nodespring.log', { flags: 'w' });
       let logStdout = process.stdout;
 

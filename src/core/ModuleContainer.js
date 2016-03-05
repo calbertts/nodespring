@@ -226,7 +226,7 @@ export default class ModuleContainer {
                   let mainInstance = modulesContainer[type].impl.scope === 'prototype' ? new modulesContainer[type].impl() : modulesContainer[type].impl
 
                   instances.forEach((instanceToInject) => {
-                    let varType = instanceToInject.constructor.interfaceName
+                    let varType = instanceToInject.constructor.interfacePackagePath
                     let property = mapImplVariable[varType]
 
                     mainInstance[property] = instanceToInject

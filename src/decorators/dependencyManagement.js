@@ -34,10 +34,21 @@ export function Inject(typeToInject) {
 
   let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
 
+  console.log('packagePath', packagePath)
+
   return (target, property, descriptor) => {
     descriptor.writable = true
 
     let targetName = global.implContext ? global.implContext.packagePath : packagePath
+
+    let preConfiguredImpl = ModuleContainer.implConfig[targetName]
+
+    if(preConfiguredImpl) {
+      if(path.basename(packagePath) !== path.basename(preConfiguredImpl)) {
+        console.error('Ignored implementation from @Inject ' + packagePath)
+        return
+      }
+    }
 
     if(typeToInject.moduleType === 'controller') {
       throw new TypeError('You cannot inject a Controller as a dependency, please take a look on ' + targetName)
@@ -66,15 +77,38 @@ export function Implements(type, scope = Scope.SINGLETON) {
 
     global.implContext = null
 
-    let x = ModuleContainer.implConfig
     let preConfiguredImpl = ModuleContainer.implConfig[type.packagePath]
 
     if(preConfiguredImpl) {
       if(target.name !== path.basename(preConfiguredImpl)) {
-        NodeSpringUtil.error('Ignored implementation ' + target.name)
+        NodeSpringUtil.error('Ignored implementation from @Implements ' + target.name)
         return
       }
     }
+
+    //let interfaceMethods = Object.getOwnPropertyNames(type.prototype)
+    //let implMethods = Object.getOwnPropertyNames(target.prototype)
+
+    /*console.log(type.name)
+    console.log('interfaceMethods',interfaceMethods)
+    console.log('implMethods', implMethods)*/
+
+    /*class ImplementationWrapper {
+      //impl = new target()
+    }
+
+    implMethods.forEach((implMethod) => {
+      if(interfaceMethods.indexOf(implMethod) < 0) {
+        ImplementationWrapper.prototype[implMethod] = () => {
+          NodeSpringUtil.error('The method "' + implMethod + '", is not declared on the interface "' + type.name + '", so you cannot call it from here')
+        }
+      } else {
+        ImplementationWrapper.prototype[implMethod] = target.prototype[implMethod]
+      }
+    })*/
+
+    //console.log('target', target)
+    //console.log('ImplementationWrapper', ImplementationWrapper.prototype)
 
     ModuleContainer.addImplementation(type, target)
   }

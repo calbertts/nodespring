@@ -119,11 +119,12 @@ export function Mock(type) {
     throw new TypeError('Mock expects an Interface or a Service as a parameter, instead ' + (type.name ? type.name : 'unknown') + ' was received')
 
   return (target, property, descriptor) => {
-    let mockInstance = {
-      uniqueMethod: () => {
-        return "String from mock"
-      }
-    }
+    let interfaceMethods = Object.getOwnPropertyNames(type.prototype)
+    let mockInstance = {}
+
+    interfaceMethods.forEach((method) => {
+      mockInstance[method] = () => {}
+    })
 
     descriptor.writable = true
 
