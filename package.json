@@ -18,7 +18,8 @@
   },
   "scripts": {
     "compile-index": "babel -w index.es6 -o index.js",
-    "compile": "babel -w src/ -d lib/ -s"
+    "compile": "babel -w src/ -d lib/ -s",
+    "test": "babel-node tests/runScenarios.js"
   },
   "author": "calbertts (calbertts@gmail.com)",
   "license": "MIT",

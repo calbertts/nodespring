@@ -116,12 +116,10 @@ export default class NodeSpringUtil {
     stack.shift()
     stack.shift()
 
-    /*stack.forEach((frame) => {
-      console.log(frame.getFileName())
-    })*/
+    if(stack.length > 0) {
+      let frame = stack[0]
 
-    let frame = stack[0]
-
-    return frame.getFileName()//.replace(ModuleContainer.appDir, '')
+      return frame.getFileName()
+    } else return ''
   }
 }

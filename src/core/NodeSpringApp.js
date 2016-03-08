@@ -3,7 +3,7 @@
  * @author calbertts
  */
 
-import ModuleContainer from './moduleContainer'
+import ModuleContainer from './ModuleContainer'
 import Abstract from './Abstract'
 import NodeSpringUtil from './NodeSpringUtil'
 import NodeSpringException from '../exceptions/NodeSpringException'
@@ -14,6 +14,13 @@ export default class NodeSpringApp extends Abstract {
   constructor(config) {
     super()
     this.config = config
+
+    // Global settings
+    if(!global.NodeSpringConfig) {
+      global.NodeSpringConfig = {}
+    }
+
+    global.NodeSpringConfig.printExceptions = true
 
     // Checking methods that need to be implemented
     let requiredMethods = {

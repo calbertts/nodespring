@@ -112,6 +112,7 @@ function getMessage(self) {
 }
 
 assert.lastStack = null
+assert.throwOnFail = false
 
 // At present only the three keys mentioned above are used and
 // understood by the spec. Implementations or sub modules can pass
@@ -133,7 +134,11 @@ function fail(actual, expected, message, operator, stackStartFunction) {
     stackStartFunction: stackStartFunction
   })
 
-  assert.lastStack = error.stack
+  if(assert.throwOnFail) {
+    throw error
+  } else {
+    assert.lastStack = error.stack
+  }
 }
 
 // EXTENSION! allows for well behaved errors defined elsewhere.

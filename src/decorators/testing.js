@@ -8,8 +8,8 @@ import t from 'exectimer'
 import path from 'path'
 import assert from '../core/assert'
 
-import ModuleContainer from '../core/moduleContainer'
-import NodeSpringUtil from '../core/nodeSpringUtil'
+import ModuleContainer from '../core/ModuleContainer'
+import NodeSpringUtil from '../core/NodeSpringUtil'
 
 
 let objectToTest = null

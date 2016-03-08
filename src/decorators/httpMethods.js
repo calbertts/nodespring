@@ -3,7 +3,7 @@
  * @author calbertts
  */
 
-import ModuleContainer from '../core/moduleContainer'
+import ModuleContainer from '../core/ModuleContainer'
 import NodeSpringUtil from '../core/NodeSpringUtil'
 
 
