@@ -1,12 +1,13 @@
 {
   "name": "nodespring",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Dependency Injection and Unit Testing for NodeJS using Javascript decorators",
   "main": "index.js",
   "dependencies": {
     "cli-color": "^1.1.0",
     "exectimer": "^2.0.0",
     "express": "^4.13.4",
+    "socket.io": "^1.4.5",
     "util": "^0.10.3"
   },
   "devDependencies": {

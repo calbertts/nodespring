@@ -154,6 +154,7 @@ export function Implements(type, scope = Scope.SINGLETON) {
  * @constructor
  */
 export function Interface(interfaceBase) {
+  console.log('STARTING INTERFACE', interfaceBase.name)
   let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
 
   //NodeSpringUtil.log('packagePath', packagePath)

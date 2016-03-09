@@ -5,6 +5,7 @@
 
 import NodeSpringApp from '../core/NodeSpringApp'
 import express from 'express'
+import http from 'http'
 
 
 export default class ExpressApp extends NodeSpringApp {
@@ -12,11 +13,19 @@ export default class ExpressApp extends NodeSpringApp {
   constructor(config) {
     super(config)
 
+    this.listeners = {}
     this.configExpressApp()
   }
 
   bindURL(method, url, callback) {
     this.expressApp[method](url, callback)
+  }
+
+  addSocketListener(event, handler, instance) {
+    this.listeners[event] = {
+      instance: instance,
+      handler: handler
+    }
   }
 
   getRequestParams(request, callback) {
@@ -40,11 +49,29 @@ export default class ExpressApp extends NodeSpringApp {
     const port = this.config.port
     this.expressApp = express()
 
+    var server = http.createServer(this.expressApp)
+    var io = require('socket.io')(server)
+
     this.bindURL('get', '/', (req, res) => {
       res.send('Hello World!');
     })
 
-    this.expressApp.listen(port, function () {
+    io.on('connection', (socket) => {
+      console.log('SETTING UP', this.listeners)
+
+      for(let event in this.listeners) {
+        socket.on(event, (data) => {
+          console.log('SUBMETHOD!', data)
+
+          let instance = this.listeners[event].instance
+          let method = this.listeners[event].handler
+
+          method.call(instance, data, socket, io)
+        })
+      }
+    })
+
+    server.listen(port, function () {
       console.log('Server running at http://localhost:5000');
     })
   }

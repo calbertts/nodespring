@@ -4,6 +4,8 @@ var _moduleContainer = require('./lib/core/moduleContainer');
 
 var _httpMethods = require('./lib/decorators/httpMethods');
 
+var _sockets = require('./lib/decorators/sockets');
+
 var _dependencyManagement = require('./lib/decorators/dependencyManagement');
 
 var _controller = require('./lib/decorators/controller');
@@ -21,6 +23,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 exports.ModuleContainer = _moduleContainer.ModuleContainer;
 exports.Get = _httpMethods.Get;
 exports.Post = _httpMethods.Post;
+exports.SocketListener = _sockets.SocketListener;
 exports.Interface = _dependencyManagement.Interface;
 exports.Implements = _dependencyManagement.Implements;
 exports.Scope = _dependencyManagement.Scope;

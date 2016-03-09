@@ -1,5 +1,6 @@
 import {ModuleContainer} from './lib/core/moduleContainer'
 import {Get, Post} from './lib/decorators/httpMethods'
+import {SocketListener} from './lib/decorators/sockets'
 import {Interface, Implements, Inject, PostInject, Scope} from './lib/decorators/dependencyManagement'
 import {Controller} from './lib/decorators/controller'
 import {Service} from './lib/decorators/service'
@@ -10,6 +11,7 @@ import ExpressApp from './lib/middlewares/ExpressApp'
 exports.ModuleContainer = ModuleContainer
 exports.Get = Get
 exports.Post = Post
+exports.SocketListener = SocketListener
 exports.Interface = Interface
 exports.Implements = Implements
 exports.Scope = Scope

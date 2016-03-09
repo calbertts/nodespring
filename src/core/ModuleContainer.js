@@ -80,13 +80,14 @@ export default class ModuleContainer {
     ModuleContainer.runInjectionResolver(moduleName)
 
     let moduleInfo = modulesContainer[moduleName]
-    let publishedURLs = []
 
-    for(let i=0; i<moduleInfo.methods.length; i++) {
-      let methodInfo = moduleInfo.methods[i]
+    moduleInfo.socketListeners.forEach((socketListener) => {
+      let handler = moduleInfo.impl[socketListener.methodName]
 
-      publishedURLs.push(`/${path}/${methodInfo.methodName}`)
+      ModuleContainer.nodeSpringApp.addSocketListener(socketListener.eventName, handler, moduleInfo.impl)
+    })
 
+    moduleInfo.methods.forEach((methodInfo) => {
       ModuleContainer.nodeSpringApp.bindURL(methodInfo.httpMethod, `/${path}/${methodInfo.methodName}`, (req, res) => {
         let fn = moduleInfo.impl[methodInfo.methodName]
 
@@ -121,7 +122,7 @@ export default class ModuleContainer {
           }
         })
       })
-    }
+    })
   }
 
   static addRoute(moduleDef, methodName, httpMethod, contentType) {
@@ -133,6 +134,17 @@ export default class ModuleContainer {
       methodName: methodName,
       httpMethod: httpMethod,
       contentType: contentType
+    })
+  }
+
+  static addSocketListener(moduleDef, methodName, eventName) {
+    let moduleName = moduleDef.packagePath
+
+    ModuleContainer.addInterface(moduleName)
+
+    modulesContainer[moduleName].socketListeners.push({
+      methodName: methodName,
+      eventName: eventName ? eventName : methodName
     })
   }
 
@@ -177,6 +189,7 @@ export default class ModuleContainer {
         dependents: {},
         dependencies: {},
         methods: [],
+        socketListeners: [],
         instanceResolvedValue: false,
         isInstanceResolved: () => {
           if(modulesContainer[type].moduleType === 'service' || modulesContainer[type].moduleType === 'controller') {
@@ -194,7 +207,7 @@ export default class ModuleContainer {
             let moduleInfo = modulesContainer[type]
             let dependencies = moduleInfo.dependencies
 
-            console.log('hello, it is me', type, dependencies)
+            console.log('getInstance for an Impl', type, dependencies)
 
             if (Object.keys(dependencies).length > 0) {
               console.log('has dependencies')
@@ -218,6 +231,10 @@ export default class ModuleContainer {
                  * Wait for the dependencies are resolved to be injected
                  * in the instance that's being created
                  */
+                Promise.all(dependenciesInstancesPromises).then((instances) => {
+                  console.log('another listener')
+                })
+
                 Promise.all(dependenciesInstancesPromises).then((instances) => {
                   console.log('official promises resolved')
 
@@ -254,12 +271,14 @@ export default class ModuleContainer {
                */
               return new Promise((resolve, reject) => {
                 if(modulesContainer[type].impl) {
-                  console.log('I was already here')
+                  console.log('No dependencies, instance resolved')
                   modulesContainer[type].instanceResolvedValue = true
                   resolve(!modulesContainer[type].impl.scope ? modulesContainer[type].impl : new modulesContainer[type].impl())
                 } else {
+                  console.log('No dependencies, observing for impl to be resolved')
+
                   Object.observe(modulesContainer[type], (changes) => {
-                    //console.log('impl arrived', type)
+                    console.log('impl arrived', type)
 
                     let change = changes.filter((change) => change.type === 'update')[0]
 
@@ -305,7 +324,7 @@ export default class ModuleContainer {
           ModuleContainer.addInterface(expectedType)
         }
 
-        console.log('modulesContainer[expectedType]', modulesContainer[expectedType])
+        //console.log('modulesContainer[expectedType]', modulesContainer[expectedType])
 
         let myOwnDependents = modulesContainer[expectedType].dependents[type] = {}
 
@@ -376,5 +395,9 @@ export default class ModuleContainer {
 
   static getModuleContainer() {
     return modulesContainer
+  }
+
+  static clearModuleContainer() {
+    modulesContainer = {}
   }
 }
