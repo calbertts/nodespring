@@ -53,7 +53,7 @@ export default class NodeSpringApp extends Abstract {
   }
 
   start() {
-    ModuleContainer.init(this.config.classDir, this, this.config.implConfig, this.config.logging, this.config.loggingSync)
+    ModuleContainer.init(this.config.classDir, this, this.config.implConfig, this.config.logging, this.config.loggingSync, this.config.debugging)
     ModuleContainer.loadModules()
   }
 }

@@ -9,6 +9,8 @@ import util from 'util'
 export default class NodeSpringUtil {
 
   static logging = false
+  static loggingSync = false
+  static debugging = false
 
   /**
    * Method to get the arguments' names
@@ -37,22 +39,19 @@ export default class NodeSpringUtil {
    * Send all the console.log/error output to a file
    * This is pretty useful to see a synchronous log
    */
-  static configureLoggingOut(logging, loggingSync) {
-    if(logging) {
-      NodeSpringUtil.logging = logging
-    }
+  static configureLoggingOut(loggingSync) {
+    NodeSpringUtil.loggingSync = loggingSync
 
-    if(loggingSync) {
-      NodeSpringUtil.loggingSync
-
-      let logFile = fs.createWriteStream('nodespring.log', { flags: 'w' });
-      let logStdout = process.stdout;
+    if(NodeSpringUtil.loggingSync)
+    {
+      let logFile = fs.createWriteStream('nodespring.log', { flags: 'w' })
+      let logStdout = process.stdout
 
       console.log = function () {
-        logFile.write(util.format.apply(null, arguments) + '\n');
-        logStdout.write(util.format.apply(null, arguments) + '\n');
+        logFile.write(util.format.apply(null, arguments) + '\n')
+        logStdout.write(util.format.apply(null, arguments) + '\n')
       }
-      console.error = console.log;
+      console.error = console.log
     }
   }
 
@@ -64,6 +63,12 @@ export default class NodeSpringUtil {
   static error() {
     if(NodeSpringUtil.logging)
       console.error.apply(this, arguments)
+  }
+
+  static debug() {
+    if(NodeSpringUtil.debugging) {
+      console.log.apply(this, arguments)
+    }
   }
 
   /**

@@ -5,6 +5,7 @@
 
 import ModuleContainer from '../core/ModuleContainer'
 import NodeSpringUtil from '../core/NodeSpringUtil'
+import NodeSpringException from '../exceptions/NodeSpringException'
 
 
 export function Get() {
@@ -20,6 +21,10 @@ export function Get() {
   }
 
   if(arguments.length <= 1) {
+    if(typeof arguments[0] !== 'object') {
+      throw new NodeSpringException('The options passed to @Get is not valid', this, 2)
+    }
+
     options = arguments[0] || {}
     options.contentType = !options.contentType ? 'text/html' : options.contentType
 
@@ -28,6 +33,10 @@ export function Get() {
     let target = arguments[0]
     let property = arguments[1]
     let descriptor = arguments[2]
+
+    if(typeof target[property] !== 'function') {
+      throw new NodeSpringException('@Get expects a method but "' + property + '" was received.', this, 2)
+    }
 
     addRoute(target, property, descriptor)
   }
@@ -46,6 +55,10 @@ export function Post() {
   }
 
   if(arguments.length <= 1) {
+    if(typeof arguments[0] !== 'object') {
+      throw new NodeSpringException('The options passed to @Post is not valid', this, 2)
+    }
+
     options = arguments[0] || {}
     options.contentType = !options.contentType ? 'text/html' : options.contentType
 
@@ -54,6 +67,10 @@ export function Post() {
     let target = arguments[0]
     let property = arguments[1]
     let descriptor = arguments[2]
+
+    if(typeof target[property] !== 'function') {
+      throw new NodeSpringException('@Post expects a method but "' + property + '" was received.', this, 2)
+    }
 
     addRoute(target, property, descriptor)
   }

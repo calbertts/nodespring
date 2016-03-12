@@ -4,6 +4,7 @@
  */
 
 import NodeSpringApp from '../core/NodeSpringApp'
+import NodeSpringUtil from '../core/NodeSpringUtil'
 import express from 'express'
 import http from 'http'
 
@@ -57,11 +58,11 @@ export default class ExpressApp extends NodeSpringApp {
     })
 
     io.on('connection', (socket) => {
-      console.log('SETTING UP', this.listeners)
+      NodeSpringUtil.debug('SETTING UP', this.listeners)
 
       for(let event in this.listeners) {
         socket.on(event, (data) => {
-          console.log('SUBMETHOD!', data)
+          NodeSpringUtil.debug('SUBMETHOD!', data)
 
           let instance = this.listeners[event].instance
           let method = this.listeners[event].handler
@@ -72,7 +73,7 @@ export default class ExpressApp extends NodeSpringApp {
     })
 
     server.listen(port, function () {
-      console.log('Server running at http://localhost:5000');
+      NodeSpringUtil.log('Server running at http://localhost:5000');
     })
   }
 }

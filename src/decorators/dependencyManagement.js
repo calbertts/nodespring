@@ -31,6 +31,9 @@ export var Scope = {
  * @constructor
  */
 export function Inject(typeToInject) {
+  if(!typeToInject || !NodeSpringUtil.isClass(typeToInject)) {
+    throw new NodeSpringException('@Inject expects an Interface but an ' + typeToInject + ' was received.', this, 2)
+  }
 
   let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
 
@@ -40,11 +43,11 @@ export function Inject(typeToInject) {
     let targetName = global.implContext ? global.implContext.packagePath : packagePath
     let preConfiguredImpl = ModuleContainer.implConfig[targetName]
 
-    //NodeSpringUtil.log('inject:', targetName)
+    //NodeSpringUtil.debug('inject:', targetName)
 
     if(preConfiguredImpl) {
       if(path.basename(packagePath) !== path.basename(preConfiguredImpl)) {
-        console.error('Ignored implementation from @Inject ' + packagePath)
+        NodeSpringUtil.error('Ignored implementation from @Inject ' + packagePath)
         return
       }
     }
@@ -66,9 +69,17 @@ export function Inject(typeToInject) {
  * @constructor
  */
 export function Implements(type, scope = Scope.SINGLETON) {
+  if(!type || !NodeSpringUtil.isClass(type)) {
+    throw new NodeSpringException('@Implements expects a Class but an ' + type + ' was received.', this, 2)
+  }
+
+  if(scope !== Scope.SINGLETON && scope !== Scope.PROTOTYPE) {
+    throw new NodeSpringException('Invalid Scope for ' + type.name + ', ' + scope + ' was received', this, 2)
+  }
+
   global.implContext = type
 
-  //NodeSpringUtil.log('Impl context:', type.packagePath)
+  //NodeSpringUtil.debug('Impl context:', type.packagePath)
 
   return (target, property, descriptor) => {
     target.scope = scope
@@ -78,17 +89,17 @@ export function Implements(type, scope = Scope.SINGLETON) {
 
     global.implContext = null
 
-    //NodeSpringUtil.log('implements:', target.name)
+    //NodeSpringUtil.debug('implements:', target.name)
 
-    //NodeSpringUtil.log('type.packagePath', type.packagePath)
-    //NodeSpringUtil.log('preConfiguredImpl', ModuleContainer.implConfig)
+    //NodeSpringUtil.debug('type.packagePath', type.packagePath)
+    //NodeSpringUtil.debug('preConfiguredImpl', ModuleContainer.implConfig)
 
     let preConfiguredImpl = ModuleContainer.implConfig[type.packagePath]
 
-    //NodeSpringUtil.log('..preConfiguredImpl', preConfiguredImpl)
-    //NodeSpringUtil.log('target.name', target.name)
+    //NodeSpringUtil.debug('..preConfiguredImpl', preConfiguredImpl)
+    //NodeSpringUtil.debug('target.name', target.name)
 
-    //NodeSpringUtil.log(target.name, '!==', path.basename(preConfiguredImpl))
+    //NodeSpringUtil.debug(target.name, '!==', path.basename(preConfiguredImpl))
 
     if(preConfiguredImpl) {
       if(target.name !== path.basename(preConfiguredImpl)) {
@@ -113,7 +124,7 @@ export function Implements(type, scope = Scope.SINGLETON) {
       if(interfaceMethods.indexOf(implMethod) < 0 && implMethod !== 'init') {
         let exceptionFn = () => {
           let stack = NodeSpringUtil.getStack()
-          console.log(stack);
+          NodeSpringUtil.debug(stack);
           let methodNotDeclared = new NodeSpringException('The method "' + implMethod + '", is not declared on the interface "' + type.name + '", so you cannot call it from here', this, 2)
           NodeSpringUtil.throwNodeSpringException(methodNotDeclared)
         }
@@ -125,7 +136,7 @@ export function Implements(type, scope = Scope.SINGLETON) {
 
         ImplementationWrapper.prototype[implMethod] = exceptionFn
       } else {
-        console.log('ARGS:', NodeSpringUtil.getArgs(target.prototype[implMethod]))
+        NodeSpringUtil.debug('ARGS:', NodeSpringUtil.getArgs(target.prototype[implMethod]))
 
         let fnArgs = NodeSpringUtil.getArgs(target.prototype[implMethod])
 
@@ -139,8 +150,8 @@ export function Implements(type, scope = Scope.SINGLETON) {
       }
     })
 
-    //console.log('target', target.prototype)
-    //console.log('ImplementationWrapper', ImplementationWrapper.prototype)*/
+    //NodeSpringUtil.debug('target', target.prototype)
+    //NodeSpringUtil.debug('ImplementationWrapper', ImplementationWrapper.prototype)*/
 
     ModuleContainer.addImplementation(type, target)
   }
@@ -154,11 +165,15 @@ export function Implements(type, scope = Scope.SINGLETON) {
  * @constructor
  */
 export function Interface(interfaceBase) {
-  console.log('STARTING INTERFACE', interfaceBase.name)
+  if(!interfaceBase || !NodeSpringUtil.isClass(interfaceBase)) {
+    throw new NodeSpringException('@Interface expects a Class but an ' + interfaceBase + ' was received.', this, 2)
+  }
+
+  NodeSpringUtil.debug('STARTING INTERFACE', interfaceBase.name)
   let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
 
-  //NodeSpringUtil.log('packagePath', packagePath)
-  //sNodeSpringUtil.log('interface:', interfaceBase.name)
+  //NodeSpringUtil.debug('packagePath', packagePath)
+  //sNodeSpringUtil.debug('interface:', interfaceBase.name)
 
   class MockedInterface extends Abstract {
     static moduleType = 'interface'

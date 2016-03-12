@@ -6,6 +6,7 @@ import assert from '../src/core/assert'
 
 // NodeSpring decorators
 import {Interface, Implements, Inject, PostInject} from '../src/decorators/dependencyManagement'
+import {Mock, TestClass, Test, Before, InjectMocks} from '../src/decorators/testing'
 
 
 (function setup() {
@@ -23,15 +24,126 @@ import {Interface, Implements, Inject, PostInject} from '../src/decorators/depen
   }
   ModuleContainer.init(__dirname, {}, implConfig)
   NodeSpringUtil.logging = true
+  NodeSpringUtil.debugging = false
 
-  console.log(clc.blue.bold('Running Testing Scenarios for NodeSpring\n'))
+  NodeSpringUtil.log(clc.blue.bold('Running Testing Scenarios for NodeSpring\n'))
 })();
 
 
+(function runScenario0() {
+  let fail = (err, msg) => NodeSpringUtil.log(clc.red('  Scenario 0 failed: ' + msg + (err ? '\n  Message: ' + err.message : '') + '\n'))
+
+  try {
+    class TestInject {
+      @Inject(undefined)
+      variable
+    }
+  } catch(err) {
+    if(err.message.match(/@Inject expects an Interface but an .* was received./)) {
+      NodeSpringUtil.log(clc.blue('  Scenario 0.1 passed!\n'))
+    } else {
+      fail(err, "Expected exception when the Interface passed to @Inject(...) is not valid")
+    }
+  }
+
+  try {
+    @Implements(undefined)
+    class TestImplements {
+
+    }
+  } catch(err) {
+    if(err.message.match(/@Implements expects a Class but an .* was received./)) {
+      NodeSpringUtil.log(clc.blue('  Scenario 0.2 passed!\n'))
+    } else {
+      fail(err, "Expected exception when the Class decorated with @Implements(...) is not valid")
+    }
+  }
+
+  try {
+    @Interface(undefined)
+    class TestImplements {
+
+    }
+  } catch(err) {
+    if(err.message.match(/@Interface expects a Class but an .* was received./)) {
+      NodeSpringUtil.log(clc.blue('  Scenario 0.3 passed!\n'))
+    } else {
+      fail(err, "Expected exception when the Class decorated with @Interface(...) is not valid")
+    }
+  }
+
+  try {
+    @TestClass(undefined)
+    class TestTestClass {
+
+    }
+  } catch(err) {
+    if(err.message.match(/@TestClass expects a Class but an .* was received./)) {
+      NodeSpringUtil.log(clc.blue('  Scenario 0.4 passed!\n'))
+    } else {
+      fail(err, "Expected exception when the Class decorated with @TestClass(...) is not valid")
+    }
+  }
+
+  try {
+    class TestMock {
+      @Mock(undefined)
+      mock
+    }
+  } catch(err) {
+    if(err.message.match(/@Mock expects an Interface but an .* was received./)) {
+      NodeSpringUtil.log(clc.blue('  Scenario 0.5 passed!\n'))
+    } else {
+      fail(err, "Expected exception when the Interface passed to @Mock(...) is not valid")
+    }
+  }
+
+  try {
+    class TestInjectMocks {
+      @InjectMocks(undefined)
+      mock
+    }
+  } catch(err) {
+    if(err.message.match(/@InjectMocks expects an Implementation but an .* was received./)) {
+      NodeSpringUtil.log(clc.blue('  Scenario 0.6 passed!\n'))
+    } else {
+      fail(err, "Expected exception when the Implementation passed to @InjectMocks(...) is not valid")
+    }
+  }
+
+  try {
+    class TestTestMethod {
+
+      @Test
+      test1() {}
+    }
+  } catch(err) {
+    if(err.message.match(/@Test expects a method but an .* was received./)) {
+      NodeSpringUtil.log(clc.blue('  Scenario 0.7 passed!\n'))
+    } else {
+      fail(err, "Expected exception when the method decorated with @Test(...) is not valid")
+    }
+  }
+
+  try {
+    class TestBeforeMethod {
+
+      @Before
+      test1() {}
+    }
+  } catch(err) {
+    if(err.message.match(/@Before expects a method but an .* was received./)) {
+      NodeSpringUtil.log(clc.blue('  Scenario 0.7 passed!\n'))
+    } else {
+      fail(err, "Expected exception when the method decorated with @Before(...) is not valid")
+    }
+  }
+})();
+
+(() => ModuleContainer.clearModuleContainer())();
 
 (function runScenario1() {
-  global.modulesContainer = {}
-  let fail = (err, msg) => console.log(clc.red('  Scenario 1 failed: ' + msg + (err ? '\n  Message: ' + err.message : '') + '\n'))
+  let fail = (err, msg) => NodeSpringUtil.log(clc.red('  Scenario 1 failed: ' + msg + (err ? '\n  Message: ' + err.message : '') + '\n'))
 
   try {
     @Interface
@@ -45,7 +157,7 @@ import {Interface, Implements, Inject, PostInject} from '../src/decorators/depen
     fail(null, "An exception was expected")
   } catch(err) {
     if(err.message.match(/The method ".*" declared in .* is not implemented in .*/)) {
-      console.log(clc.blue('  Scenario 1 passed!\n'))
+      NodeSpringUtil.log(clc.blue('  Scenario 1 passed!\n'))
     } else {
       fail(err, "Expected exception when a parameter isn't present wasn't thrown")
     }
@@ -55,8 +167,7 @@ import {Interface, Implements, Inject, PostInject} from '../src/decorators/depen
 (() => ModuleContainer.clearModuleContainer())();
 
 (function runScenario2() {
-  global.modulesContainer = {}
-  let fail = (err, msg) => console.log(clc.red('  Scenario 2 failed: ' + msg + (err ? '\n  Message: ' + err.message : '') + '\n'))
+  let fail = (err, msg) => NodeSpringUtil.log(clc.red('  Scenario 2 failed: ' + msg + (err ? '\n  Message: ' + err.message : '') + '\n'))
 
   try {
     @Interface
@@ -72,7 +183,7 @@ import {Interface, Implements, Inject, PostInject} from '../src/decorators/depen
     fail(null, "An exception was expected")
   } catch(err) {
     if(err.message.match(/The param ".*" declared in .* is not present in .*/)) {
-      console.log(clc.blue('  Scenario 2 passed!\n'))
+      NodeSpringUtil.log(clc.blue('  Scenario 2 passed!\n'))
     } else {
       fail(err, "Expected exception when a parameter isn't present wasn't thrown")
     }
@@ -82,7 +193,7 @@ import {Interface, Implements, Inject, PostInject} from '../src/decorators/depen
 (() => ModuleContainer.clearModuleContainer())();
 
 (function runScenario3() {
-  let fail = (err, msg) => console.log(clc.red('  Scenario 3 failed: ' + msg + (err ? '\n  Message: ' + err.message : '') + '\n'))
+  let fail = (err, msg) => NodeSpringUtil.log(clc.red('  Scenario 3 failed: ' + msg + (err ? '\n  Message: ' + err.message : '') + '\n'))
 
   try {
     @Interface
@@ -120,21 +231,22 @@ import {Interface, Implements, Inject, PostInject} from '../src/decorators/depen
           fail(null, "Dependency type doesn't correspond with the expected one")
         }
 
-        console.log(clc.blue('  Scenario 3 passed!\n'))
+        NodeSpringUtil.log(clc.blue('  Scenario 3 passed!\n'))
       } else {
         fail(null, "Dependency type doesn't correspond with the expected one")
       }
-    }, 100)
+
+      (() => ModuleContainer.clearModuleContainer())();
+    }, 5000)
   } catch(err) {
     fail(err, "Unexpected exception")
   }
 })();
 
-(() => ModuleContainer.clearModuleContainer())();
 
 (function runScenario4() {
-  console.log('STARTING SCENARIO 4')
-  let fail = (err, msg) => console.log(clc.red('  Scenario 4 failed: ' + msg + (err ? '\n  Message: ' + err.message : '') + '\n'))
+  NodeSpringUtil.debug('STARTING SCENARIO 4')
+  let fail = (err, msg) => NodeSpringUtil.log(clc.red('  Scenario 4 failed: ' + msg + (err ? '\n  Message: ' + err.message : '') + '\n'))
 
   try {
     @Interface
@@ -180,19 +292,21 @@ import {Interface, Implements, Inject, PostInject} from '../src/decorators/depen
     }
 
     setTimeout(() => {
-      console.log('global.modulesContainer', Object.keys(ModuleContainer.getModuleContainer()))
+      NodeSpringUtil.debug('global.modulesContainer', Object.keys(ModuleContainer.getModuleContainer()))
       let instanceToCheck = ModuleContainer.getModuleContainer()['path/SuperType'].impl
 
-      console.log(instanceToCheck.subTypeVar)
+      NodeSpringUtil.debug(instanceToCheck.subTypeVar)
       if(instanceToCheck.subTypeVar instanceof SubTypeImpl)
-        console.error('instanceToCheck', instanceToCheck)
+        NodeSpringUtil.debug('instanceToCheck', instanceToCheck)
 
       if(instanceToCheck.subTypeVar && instanceToCheck.subTypeVar instanceof SubTypeImpl) {
-        console.log(clc.blue('  Scenario 4 passed!\n'))
+        NodeSpringUtil.debug(clc.blue('  Scenario 4 passed!\n'))
       } else {
         fail(null, "Dependency type doesn't correspond with the expected one")
       }
-    }, 1)
+
+      (() => ModuleContainer.clearModuleContainer())();
+    }, 10000)
   } catch(err) {
     fail(err, "Unexpected exception")
   }

@@ -10,6 +10,7 @@ import assert from '../core/assert'
 
 import ModuleContainer from '../core/ModuleContainer'
 import NodeSpringUtil from '../core/NodeSpringUtil'
+import NodeSpringException from '../exceptions/NodeSpringException'
 
 
 let objectToTest = null
@@ -17,10 +18,12 @@ let mocksToInject = {}
 
 
 export function TestClass(testClass) {
-  if(!NodeSpringUtil.isClass(testClass))
-    throw new TypeError('A class was expected to test')
+  if(!testClass || !NodeSpringUtil.isClass(testClass)) {
+    throw new NodeSpringException('@TestClass expects a Class but an ' + testClass + ' was received.', this, 2)
+  }
 
-  console.log(clc.blue.bold('NodeSpring Unit Test Runner:', clc.yellow(className, '\n')))
+  NodeSpringUtil.logging = true
+  NodeSpringUtil.log(clc.blue.bold('NodeSpring Unit Test Runner:', clc.yellow(className, '\n')))
 
   let testClassObj = new testClass()
 
@@ -29,7 +32,7 @@ export function TestClass(testClass) {
     let dataType = objectToTest.dependencies[classProp]
 
     if(!mocksToInject[dataType]) {
-      console.error(clc.yellow.bold('  WARNING:'), clc.yellow('There isn\'t a mock for the dependency injected in ' + objectToTest.type.name + '.' + classProp + ' (' + path.basename(dataType) + ')\n           An empty object will be provided, but tests can fail\n'))
+      NodeSpringUtil.error(clc.yellow.bold('  WARNING:'), clc.yellow('There isn\'t a mock for the dependency injected in ' + objectToTest.type.name + '.' + classProp + ' (' + path.basename(dataType) + ')\n           An empty object will be provided, but tests can fail\n'))
       objectToTest.instance[classProp] = {}
     } else {
       objectToTest.instance[classProp] = mocksToInject[dataType].instance
@@ -41,7 +44,7 @@ export function TestClass(testClass) {
   // Check for mocks which aren't required
   for(let dataType in mocksToInject) {
     if(mocksToInject[dataType] && !mocksToInject[dataType].used) {
-      console.error(clc.yellow.bold('  WARNING:'), clc.yellow('The declared mock for ' + testClass.name + '.' + mocksToInject[dataType].testClassProperty + ' is not required on ' + objectToTest.instance.constructor.name + '\n'))
+      NodeSpringUtil.error(clc.yellow.bold('  WARNING:'), clc.yellow('The declared mock for ' + testClass.name + '.' + mocksToInject[dataType].testClassProperty + ' is not required on ' + objectToTest.instance.constructor.name + '\n'))
     }
   }
 
@@ -78,14 +81,14 @@ export function TestClass(testClass) {
 
         if(assertInstance.ok.lastStack) {
 
-          console.log(clc.red('  ' + clc.red.bold(failedSymbol), method))
-          console.log(clc.red('   ', assertInstance.ok.lastStack), '\n')
+          NodeSpringUtil.log(clc.red('  ' + clc.red.bold(failedSymbol), method))
+          NodeSpringUtil.log(clc.red('   ', assertInstance.ok.lastStack), '\n')
 
           methodStatus.failed.push(method)
           resolve()
           assertInstance.ok.lastStack = null
         } else {
-          console.log(clc.green('  ' + clc.green.bold(passedSymbol), method), '\n')
+          NodeSpringUtil.log(clc.green('  ' + clc.green.bold(passedSymbol), method), '\n')
 
           methodStatus.success.push(method)
           resolve()
@@ -105,18 +108,23 @@ export function TestClass(testClass) {
     let timeStr = t.timers[className].parse(t.timers[className].duration())
 
     if(methodStatus.failed.length > 0)
-      console.log(' ', clc.red(methodStatus.failed.length, 'of', testMethods.length, 'tests failed'))
+      NodeSpringUtil.log(' ', clc.red(methodStatus.failed.length, 'of', testMethods.length, 'tests failed'))
     else
-      console.log(' ', clc.blue('All tests have passed!'))
+      NodeSpringUtil.log(' ', clc.blue('All tests have passed!'))
 
-    console.log(clc.blue.bold('  Time:'), clc.yellow(timeStr), '\n')
+    NodeSpringUtil.log(clc.blue.bold('  Time:'), clc.yellow(timeStr), '\n')
   })
 }
 
 
 export function Mock(type) {
-  if(type.moduleType !== 'interface' && type.moduleType !== 'service')
-    throw new TypeError('Mock expects an Interface or a Service as a parameter, instead ' + (type.name ? type.name : 'unknown') + ' was received')
+  if(!type || !NodeSpringUtil.isClass(type)) {
+    throw new NodeSpringException('@Mock expects an Interface but an ' + type + ' was received.', this, 2)
+  }
+
+  if(type.moduleType !== 'interface' && type.moduleType !== 'service') {
+    throw new NodeSpringException('Mock expects an Interface or a Service as a parameter, instead ' + (type.name ? type.name : 'unknown') + ' was received', this, 2)
+  }
 
   return (target, property, descriptor) => {
     let interfaceMethods = Object.getOwnPropertyNames(type.prototype)
@@ -138,22 +146,28 @@ export function Mock(type) {
 
 
 export function Test(target, property, descriptor) {
-  if(typeof target[property] !== 'function')
-    throw new TypeError('A function was expected to test: ' + property)
+  if(typeof target[property] !== 'function') {
+    throw new NodeSpringException('@Test expects a method but an ' + descriptor.value + ' was received.', this, 2)
+  }
 
   descriptor.value.testMethod = true
 }
 
 
 export function Before(target, property, descriptor) {
-  if(typeof target[property] !== 'function')
-    throw new TypeError('A function was expected to test: ' + property)
+  if(typeof target[property] !== 'function') {
+    throw new NodeSpringException('@Before expects a method but an ' + descriptor.value + ' was received.', this, 2)
+  }
 
   descriptor.value.beforeMethod = true
 }
 
 
 export function InjectMocks(type) {
+  if(!type || !NodeSpringUtil.isClass(type)) {
+    throw new NodeSpringException('@InjectMocks expects an Implementation but an ' + type + ' was received.', this, 2)
+  }
+
   return (target, property, descriptor) => {
     descriptor.writable = true
 
