@@ -35,7 +35,7 @@ export default class ExpressApp extends NodeSpringApp {
   }
 
   setContentTypeResponse(response, contentType) {
-    response.contentType(contentType)
+    response.contentType(contentType || 'text/html')
   }
 
   sendJSONResponse(response, data) {

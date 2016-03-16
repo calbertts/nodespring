@@ -84,34 +84,34 @@ export default class ModuleContainer {
 
     let moduleInfo = modulesContainer[moduleName]
 
-    moduleInfo.socketListeners.forEach((socketListener) => {
-      let handler = moduleInfo.impl[socketListener.methodName]
+    let processRequest = (req, res, methodInfo) => {
+      let fn = moduleInfo.impl[methodInfo.methodName]
 
-      ModuleContainer.nodeSpringApp.addSocketListener(socketListener.eventName, handler, moduleInfo.impl)
-    })
+      ModuleContainer.nodeSpringApp.getRequestParams(req, (params) => {
+        let fullParams = NodeSpringUtil.getArgs(fn).map((item, index) => {
+          return params[item] || (params[item + '[]'] instanceof Array ? params[item + '[]'] : [params[item + '[]']])
+        })
 
-    moduleInfo.methods.forEach((methodInfo) => {
-      ModuleContainer.nodeSpringApp.bindURL(methodInfo.httpMethod, `/${path}/${methodInfo.methodName}`, (req, res) => {
-        let fn = moduleInfo.impl[methodInfo.methodName]
+        let handleResponse = (data) => {
+          ModuleContainer.nodeSpringApp.setContentTypeResponse(res, methodInfo.contentType)
 
-        ModuleContainer.nodeSpringApp.getRequestParams(req, (params) => {
-          let fullParams = NodeSpringUtil.getArgs(fn).map((item, index) => {
-            return params[item] || (params[item + '[]'] instanceof Array ? params[item + '[]'] : [params[item + '[]']])
-          })
-
-          let handleResponse = (data) => {
-            ModuleContainer.nodeSpringApp.setContentTypeResponse(res, methodInfo.contentType)
-
-            if(methodInfo.contentType === 'application/json') {
-              ModuleContainer.nodeSpringApp.sendJSONResponse(res, data)
-            } else {
-              ModuleContainer.nodeSpringApp.sendDataResponse(res, data)
-            }
+          if(methodInfo.contentType === 'application/json') {
+            ModuleContainer.nodeSpringApp.sendJSONResponse(res, data)
+          } else {
+            ModuleContainer.nodeSpringApp.sendDataResponse(res, data)
           }
+        }
 
-          // Getting method response
-          let value = fn.apply(moduleInfo.impl, fullParams)
+        // Getting method response
+        fn.request = req
+        fn.response = res
+        let value = fn.apply(moduleInfo.impl, fullParams)
 
+        // Clear
+        delete fn.request
+        delete fn.response
+
+        if(value !== undefined) {
           if(value instanceof Promise) {
             value
               .then((data) => {
@@ -123,7 +123,25 @@ export default class ModuleContainer {
           } else {
             handleResponse(value)
           }
-        })
+        }
+      })
+    }
+
+    moduleInfo.socketListeners.forEach((socketListener) => {
+      let handler = moduleInfo.impl[socketListener.methodName]
+
+      ModuleContainer.nodeSpringApp.addSocketListener(socketListener.eventName, handler, moduleInfo.impl)
+    })
+
+    // Bind index method
+    ModuleContainer.nodeSpringApp.bindURL('get', `/${path}`, (req, res) => {
+      processRequest(req, res, {methodName: 'index'})
+    })
+
+    // Bind the other endpoints
+    moduleInfo.methods.forEach((methodInfo) => {
+      ModuleContainer.nodeSpringApp.bindURL(methodInfo.httpMethod, `/${path}/${methodInfo.methodName}`, (req, res) => {
+        processRequest(req, res, methodInfo)
       })
     })
   }
