@@ -194,8 +194,15 @@ export function Interface(interfaceBase) {
   interfaceMethods.filter((methodName) => {
     return methodName !== 'constructor'
   }).forEach((method) => {
+    if(method === 'getInstance')
+      throw new NodeSpringException('getInstance(...) is a reserved method for Interfaces, try with other name on ' + interfaceBase.name, this, 2)
+
     MockedInterface.prototype[method] = interfaceBase.prototype[method]
   })
+
+  MockedInterface.getInstance = () => {
+    return modulesContainer[packagePath].getInstance()
+  }
 
   return MockedInterface
 }
