@@ -294,7 +294,16 @@ export default class ModuleContainer {
                 if(modulesContainer[type].impl) {
                   NodeSpringUtil.debug('No dependencies, instance resolved')
                   modulesContainer[type].instanceResolvedValue = true
-                  resolve(!modulesContainer[type].impl.scope ? modulesContainer[type].impl : new modulesContainer[type].impl())
+
+                  if(modulesContainer[type].impl.scope) {
+                    if(modulesContainer[type].impl.scope === 'singleton')
+                      resolve(modulesContainer[type].impl)
+                    else if(modulesContainer[type].impl.scope === 'prototype')
+                      resolve(new modulesContainer[type].impl())
+                  } else {
+                    resolve(modulesContainer[type].impl)
+                  }
+                  //resolve(!modulesContainer[type].impl.scope ? modulesContainer[type].impl : new modulesContainer[type].impl())
                 } else {
                   NodeSpringUtil.debug('No dependencies, observing for impl to be resolved')
 
