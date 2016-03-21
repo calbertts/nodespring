@@ -246,23 +246,29 @@ export default class ModuleContainer {
                 dependenciesInstancesPromises.push(promise)
               }
 
-              return new Promise((resolve, reject) => {
+              let mainPromise = new Promise((resolve, reject) => {
 
                 /**
                  * Wait for the dependencies are resolved to be injected
                  * in the instance that's being created
                  */
-                Promise.all(dependenciesInstancesPromises).then((instances) => {
+                /*Promise.all(dependenciesInstancesPromises).then((instances) => {
                   NodeSpringUtil.debug('another listener')
-                })
+                })*/
 
                 Promise.all(dependenciesInstancesPromises).then((instances) => {
                   NodeSpringUtil.debug('official promises resolved')
 
+                  //console.log('official promises resolved')
+
                   //NodeSpringUtil.error('Promise scope', type, modulesContainer[type].scope)
                   let mainInstance = modulesContainer[type].impl.scope === 'prototype' ? new modulesContainer[type].impl() : modulesContainer[type].impl
 
+                  console.log('instanceResolvedValue => ', modulesContainer[type].instanceResolvedValue = true)
+                  console.log('Setting for', type)
                   instances.forEach((instanceToInject) => {
+                    //console.log('instanceToInject', instanceToInject)
+
                     let varType = instanceToInject.constructor.interfacePackagePath
                     let property = mapImplVariable[varType]
 
@@ -273,6 +279,7 @@ export default class ModuleContainer {
                   let postInjectMethod = modulesContainer[type].postInjectMethod
 
                   if(postInjectMethod) {
+                    //console.log('type', type, postInjectMethod)
                     mainInstance[postInjectMethod]()
                   }
 
@@ -282,6 +289,8 @@ export default class ModuleContainer {
                   NodeSpringUtil.error('Error resolving instance for', type, err)
                 })
               })
+
+              return mainPromise
             } else {
 
               //NodeSpringUtil.debug('return instance without dependencies', type)

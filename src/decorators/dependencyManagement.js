@@ -216,5 +216,8 @@ export function Interface(interfaceBase) {
  * @constructor
  */
 export function PostInject(target, property, descriptor) {
-  ModuleContainer.addPostInjectMethod(global.implContext.packagePath, property)
+  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
+  let targetName = global.implContext ? global.implContext.packagePath : packagePath
+
+  ModuleContainer.addPostInjectMethod(targetName, property)
 }
