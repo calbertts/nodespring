@@ -86,7 +86,7 @@ export default class ExpressApp extends NodeSpringApp {
             let instance = namespaceData[eventName].instance
             let method = namespaceData[eventName].handler
 
-            method.call(instance, data, socket, this.io)
+            method.call(instance, data, socket, scope)
           })
         })
       }
