@@ -10,16 +10,16 @@ import NodeSpringUtil from '../core/NodeSpringUtil'
 export function SocketListener() {
 
   let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
-  let eventName
+  let options = {}
 
   let addSocketListener = (target, property, descriptor) => {
     target.packagePath = packagePath
 
-    ModuleContainer.addSocketListener(target, property, eventName)
+    ModuleContainer.addSocketListener(target, property, options)
   }
 
   if(arguments.length <= 1) {
-    eventName = arguments[0]
+    options = arguments[0]
 
     return addSocketListener
   } else {

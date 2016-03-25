@@ -38,28 +38,32 @@ export default class ModuleContainer {
 
   static loadModules() {
     let load = (path) => {
-      fs.lstat(path, (err, stat) => {
-        if(err)
-          throw err
-        else if (stat.isDirectory()) {
-          fs.readdir(path, (err, files) => {
-            let f, l = files.length
-            for (let i = 0; i < l; i++) {
-              f = path_module.join(path, files[i])
-              load(f)
-            }
-          })
+      try {
+        let stat = fs.lstatSync(path)
+
+        if (stat.isDirectory()) {
+          let files = fs.readdirSync(path)
+          let f, l = files.length
+          for (let i = 0; i<l; i++) {
+            f = path_module.join(path, files[i])
+            load(f)
+          }
         } else {
           if(path.indexOf('.map') < 0) {
-            NodeSpringUtil.debug("Loading file => " + path)
             require(path)
+            console.log("Loading file => " + path)
           }
         }
-      })
+      } catch(e) {
+        throw new NodeSpringException(e.message, this)
+      }
     }
 
     let baseDir = path_module.join(ModuleContainer.appDir)
     load(baseDir)
+
+    // All metadata is loaded except the injected instances
+    ModuleContainer.nodeSpringApp.configureSocketListeners()
   }
 
   static addService(moduleDef) {
@@ -127,10 +131,11 @@ export default class ModuleContainer {
       })
     }
 
-    moduleInfo.socketListeners.forEach((socketListener) => {
-      let handler = moduleInfo.impl[socketListener.methodName]
-
-      ModuleContainer.nodeSpringApp.addSocketListener(socketListener.eventName, handler, moduleInfo.impl)
+    /**
+     * This metadata is created in addSocketListener method
+     */
+    moduleInfo.socketListeners.forEach((socketListenerData) => {
+      ModuleContainer.nodeSpringApp.addSocketListener(socketListenerData, moduleInfo.impl)
     })
 
     // Bind index method
@@ -158,14 +163,15 @@ export default class ModuleContainer {
     })
   }
 
-  static addSocketListener(moduleDef, methodName, eventName) {
+  static addSocketListener(moduleDef, methodName, options) {
     let moduleName = moduleDef.packagePath
 
     ModuleContainer.addInterface(moduleName)
 
     modulesContainer[moduleName].socketListeners.push({
       methodName: methodName,
-      eventName: eventName ? eventName : methodName
+      namespace: options.namespace ? options.namespace : '/',
+      eventName: options.eventName ? options.eventName : methodName
     })
   }
 
@@ -220,11 +226,11 @@ export default class ModuleContainer {
           }
         },
         getInstance: () => {
-          if(modulesContainer[type].moduleType === 'service' || modulesContainer[type].moduleType === 'controller') {
+          /*if(modulesContainer[type].moduleType === 'service' || modulesContainer[type].moduleType === 'controller') {
             return new Promise((resolve, reject) => {
               resolve(modulesContainer[type].impl)
             })
-          } else {
+          } else {*/
             let moduleInfo = modulesContainer[type]
             let dependencies = moduleInfo.dependencies
 
@@ -264,8 +270,6 @@ export default class ModuleContainer {
                   //NodeSpringUtil.error('Promise scope', type, modulesContainer[type].scope)
                   let mainInstance = modulesContainer[type].impl.scope === 'prototype' ? new modulesContainer[type].impl() : modulesContainer[type].impl
 
-                  console.log('instanceResolvedValue => ', modulesContainer[type].instanceResolvedValue = true)
-                  console.log('Setting for', type)
                   instances.forEach((instanceToInject) => {
                     //console.log('instanceToInject', instanceToInject)
 
@@ -327,7 +331,7 @@ export default class ModuleContainer {
                 }
               })
             }
-          }
+          //}
         },
         injectDependency: (property, impl) => {
           modulesContainer[type].impl[property] = impl
@@ -407,10 +411,10 @@ export default class ModuleContainer {
     // Resolve dependencies
     ModuleContainer.resolveDependencies(type, modulesContainer[type].dependencies)
 
-    // Dispatch dependents registered dependents
+    // Dispatch registered dependents
     ModuleContainer.dispatchDependents(type, modulesContainer[type].dependents)
 
-    // Wait for future dependents to be resolved
+    // Wait and dispatch for future dependents to be resolved
     Object.observe(modulesContainer[type].dependents, (changes) => {
       ModuleContainer.dispatchDependents(type, modulesContainer[type].dependents)
     })

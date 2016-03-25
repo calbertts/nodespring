@@ -14,7 +14,7 @@ export default class ExpressApp extends NodeSpringApp {
   constructor(config) {
     super(config)
 
-    this.listeners = {}
+    this.socketListeners = {}
     this.configExpressApp()
   }
 
@@ -22,10 +22,12 @@ export default class ExpressApp extends NodeSpringApp {
     this.expressApp[method](url, callback)
   }
 
-  addSocketListener(event, handler, instance) {
-    this.listeners[event] = {
-      instance: instance,
-      handler: handler
+  addSocketListener(socketListenerData, instance) {
+    this.socketListeners[socketListenerData.namespace] = {
+      [socketListenerData.eventName]: {
+        instance: instance,
+        handler: instance[socketListenerData.methodName]
+      }
     }
   }
 
@@ -50,30 +52,38 @@ export default class ExpressApp extends NodeSpringApp {
     const port = this.config.port
     this.expressApp = express()
 
-    var server = http.createServer(this.expressApp)
-    var io = require('socket.io')(server)
+    this.server = http.createServer(this.expressApp)
 
     this.bindURL('get', '/', (req, res) => {
       res.send('Hello World!');
     })
 
-    io.on('connection', (socket) => {
-      NodeSpringUtil.debug('SETTING UP', this.listeners)
-
-      for(let event in this.listeners) {
-        socket.on(event, (data) => {
-          NodeSpringUtil.debug('SUBMETHOD!', data)
-
-          let instance = this.listeners[event].instance
-          let method = this.listeners[event].handler
-
-          method.call(instance, data, socket, io)
-        })
-      }
-    })
-
-    server.listen(port, function () {
+    this.server.listen(port, () => {
       NodeSpringUtil.log('Server running at http://localhost:5000');
     })
+  }
+
+  configureSocketListeners() {
+    this.io = require('socket.io')(this.server)
+
+    let socketListeners = this.socketListeners
+
+    for(let namespace in socketListeners) {
+      let namespaceData = socketListeners[namespace]
+
+      for(let eventName in namespaceData) {
+        var scope = this.io.of(namespace)
+
+        scope.on('connection', (socket) => {
+          console.log('Client connected to', namespace)
+          socket.on(eventName, (data) => {
+            let instance = namespaceData[eventName].instance
+            let method = namespaceData[eventName].handler
+
+            method.call(instance, data, socket, this.io)
+          })
+        })
+      }
+    }
   }
 }
