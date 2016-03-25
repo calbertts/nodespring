@@ -23,10 +23,16 @@ export default class ExpressApp extends NodeSpringApp {
   }
 
   addSocketListener(socketListenerData, instance) {
-    this.socketListeners[socketListenerData.namespace] = {
-      [socketListenerData.eventName]: {
-        instance: instance,
-        handler: instance[socketListenerData.methodName]
+    let data = {
+      instance: instance,
+      handler: instance[socketListenerData.methodName]
+    }
+
+    if(socketListenerData.namespace in this.socketListeners) {
+      this.socketListeners[socketListenerData.namespace][socketListenerData.eventName] = data
+    } else {
+      this.socketListeners[socketListenerData.namespace] = {
+        [socketListenerData.eventName]: data
       }
     }
   }
