@@ -76,7 +76,7 @@ export default class ModuleContainer {
     ModuleContainer.runInjectionResolver(moduleName)
   }
 
-  static addController(moduleDef, path) {
+  static addController(moduleDef, path, namespace) {
     let moduleName = moduleDef.packagePath
 
     ModuleContainer.addInterface(moduleName)
@@ -134,9 +134,7 @@ export default class ModuleContainer {
     /**
      * This metadata is created in addSocketListener method
      */
-    moduleInfo.socketListeners.forEach((socketListenerData) => {
-      ModuleContainer.nodeSpringApp.addSocketListener(socketListenerData, moduleInfo.impl)
-    })
+    ModuleContainer.nodeSpringApp.addSocketListeners(namespace, moduleInfo.socketListeners, moduleInfo.impl)
 
     // Bind index method
     ModuleContainer.nodeSpringApp.bindURL('get', `/${path}`, (req, res) => {
@@ -170,7 +168,6 @@ export default class ModuleContainer {
 
     modulesContainer[moduleName].socketListeners.push({
       methodName: methodName,
-      namespace: options.namespace ? options.namespace : '/',
       eventName: options.eventName ? options.eventName : methodName
     })
   }

@@ -22,19 +22,20 @@ export default class ExpressApp extends NodeSpringApp {
     this.expressApp[method](url, callback)
   }
 
-  addSocketListener(socketListenerData, instance) {
-    let data = {
-      instance: instance,
-      handler: instance[socketListenerData.methodName]
-    }
-
-    if(socketListenerData.namespace in this.socketListeners) {
-      this.socketListeners[socketListenerData.namespace][socketListenerData.eventName] = data
-    } else {
-      this.socketListeners[socketListenerData.namespace] = {
-        [socketListenerData.eventName]: data
+  addSocketListeners(namespace, socketListeners, instance) {
+    socketListeners.forEach((socketListenerData) => {
+      if(namespace in this.socketListeners) {
+        this.socketListeners[namespace].instance = instance
+        this.socketListeners[namespace].events[socketListenerData.eventName] = instance[socketListenerData.methodName]
+      } else {
+        this.socketListeners[namespace] = {
+          instance: instance,
+          events: {
+            [socketListenerData.eventName]: instance[socketListenerData.methodName]
+          }
+        }
       }
-    }
+    })
   }
 
   getRequestParams(request, callback) {
@@ -76,20 +77,22 @@ export default class ExpressApp extends NodeSpringApp {
 
     for(let namespace in socketListeners) {
       let namespaceData = socketListeners[namespace]
+      let scope = this.io.of(namespace)
 
-      for(let eventName in namespaceData) {
-        var scope = this.io.of(namespace)
+      scope.on('connection', (socket) => {
+        if('onConnection' in namespaceData.instance) {
+          namespaceData.instance.onConnection(socket, scope)
+        }
 
-        scope.on('connection', (socket) => {
-          console.log('Client connected to', namespace)
+        for(let eventName in namespaceData.events) {
           socket.on(eventName, (data) => {
-            let instance = namespaceData[eventName].instance
-            let method = namespaceData[eventName].handler
+            let instance = namespaceData.instance
+            let method = namespaceData.events[eventName]
 
             method.call(instance, data, socket, scope)
           })
-        })
-      }
+        }
+      })
     }
   }
 }

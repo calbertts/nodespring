@@ -17,7 +17,7 @@ export function Controller() {
   let addModule = (target) => {
     target.packagePath = packagePath
     target.moduleType = 'controller'
-    ModuleContainer.addController(target, options.path || target.name)
+    ModuleContainer.addController(target, options.path || target.name, options.namespace || target.name)
   }
 
   if(arguments.length === 0 || (arguments.length === 1 && !NodeSpringUtil.isClass(arguments[0]))) {
