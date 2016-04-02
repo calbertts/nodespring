@@ -5,7 +5,11 @@ import {Interface, Implements, Inject} from '../../src/decorators/dependencyMana
 TestUtil.setup()
 
 /**
- * Test a simple dependency injected
+ * Test a two level dependency injected
+ *
+ * SuperType -> SubType -> SubType2
+ *
+ *
  */
 TestUtil.run(function TwoLevelDependency(done, fail) {
   @Interface
@@ -36,11 +40,6 @@ TestUtil.run(function TwoLevelDependency(done, fail) {
     method1(param) {}
   }
 
-  @Implements(SubType2)
-  class SubTypeImpl2 {
-    subMethod1(subParam) {}
-  }
-
   @Implements(SubType)
   class SubTypeImpl {
 
@@ -50,10 +49,17 @@ TestUtil.run(function TwoLevelDependency(done, fail) {
     subMethod1(subParam) {}
   }
 
-  setTimeout(() => {
-    let instanceToCheck = TestUtil.getModuleContainer()['path/SuperType'].impl
+  @Implements(SubType2)
+  class SubType2Impl {
+    subMethod1(subParam) {}
+  }
 
-    if(instanceToCheck.subTypeVar && instanceToCheck.subTypeVar instanceof SubTypeImpl) {
+  setTimeout(() => {
+    let superTypeInstance = TestUtil.getModuleContainer()['path/SuperType'].impl
+    let subTypeInstance = TestUtil.getModuleContainer()['path/SubType'].impl
+
+    if(superTypeInstance.subTypeVar && superTypeInstance.subTypeVar instanceof SubTypeImpl &&
+      subTypeInstance.subType2Var && subTypeInstance.subType2Var instanceof SubType2Impl) {
       done()
     } else {
       fail("Dependency type doesn't correspond with the expected one")
