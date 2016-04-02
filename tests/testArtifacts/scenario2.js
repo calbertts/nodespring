@@ -1,12 +1,18 @@
-import {Interface, Implements} from '../../src/decorators/dependencyManagement'
+import TestUtil from './TestUtil.js'
+import {Interface, Implements, Inject} from '../../src/decorators/dependencyManagement'
 
 
-@Interface
-export class InterfaceOne {
-  methodOne(param1) {}
-}
+TestUtil.setup()
 
-@Implements(InterfaceOne)
-export class InterfaceOneImpl {
-  methodOne() {}
-}
+/**
+ * Test when a declared method wasn't implemented
+ */
+TestUtil.expectError(function MethodNotImplemented() {
+  @Interface
+  class InterfaceTest {
+    methodOne() {}
+  }
+
+  @Implements(InterfaceTest)
+  class InterfaceTestImpl {}
+}, 'The method ".*" declared in .* is not implemented in .*')

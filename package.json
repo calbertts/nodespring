@@ -8,9 +8,7 @@
     "exectimer": "^2.0.0",
     "express": "^4.13.4",
     "socket.io": "^1.4.5",
-    "util": "^0.10.3"
-  },
-  "devDependencies": {
+    "util": "^0.10.3",
     "babel-cli": "^6.4.5",
     "babel-core": "^6.4.5",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
@@ -31,5 +29,6 @@
   "bugs": {
     "url": "https://github.com/calbertts/nodespring/issues"
   },
-  "homepage": "https://github.com/calbertts/nodespring#readme"
+  "homepage": "https://github.com/calbertts/nodespring#readme",
+  "devDependencies": {}
 }

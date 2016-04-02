@@ -14,8 +14,8 @@ import NodeSpringUtil from './nodeSpringUtil'
 import NodeSpringException from '../exceptions/NodeSpringException'
 
 
-global.modulesContainer = {}
-let modulesContainer = global.modulesContainer
+//global.modulesContainer = {}
+let modulesContainer = {}//global.modulesContainer
 
 export default class ModuleContainer {
 
