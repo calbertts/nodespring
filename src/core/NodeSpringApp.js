@@ -28,7 +28,8 @@ export default class NodeSpringApp extends Abstract {
       getRequestParams: ['request', 'callback'],
       setContentTypeResponse: ['response', 'contentType'],
       sendJSONResponse: ['response', 'data'],
-      sendDataResponse: ['response', 'data']
+      sendDataResponse: ['response', 'data'],
+      addSocketListeners: ['namespace', 'socketListeners', 'instance']
     }
 
     for(let methodName in requiredMethods) {

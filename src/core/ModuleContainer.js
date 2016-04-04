@@ -23,7 +23,8 @@ export default class ModuleContainer {
   static implConfig = {}
   static nodeSpringApp = {
     bindURL: () => {},
-    addSocketListener: () => {}
+    addSocketListener: () => {},
+    addSocketListeners: () => {}
   }
 
   static init(appDir, nodeSpringApp, implConfig, logging = false, loggingSync = false, debugging = false) {
@@ -33,7 +34,7 @@ export default class ModuleContainer {
 
     ModuleContainer.appDir = appDir
     ModuleContainer.implConfig = implConfig
-    ModuleContainer.nodeSpringApp = nodeSpringApp
+    ModuleContainer.nodeSpringApp = nodeSpringApp || ModuleContainer.nodeSpringApp
   }
 
   static loadModules() {
@@ -231,11 +232,7 @@ export default class ModuleContainer {
             let moduleInfo = modulesContainer[type]
             let dependencies = moduleInfo.dependencies
 
-            NodeSpringUtil.debug('getInstance for an Impl', type, dependencies)
-
             if (Object.keys(dependencies).length > 0) {
-              NodeSpringUtil.debug('has dependencies')
-
               let dependenciesInstancesPromises = []
               let mapImplVariable = {}
 
@@ -260,16 +257,10 @@ export default class ModuleContainer {
                 })*/
 
                 Promise.all(dependenciesInstancesPromises).then((instances) => {
-                  NodeSpringUtil.debug('official promises resolved')
 
-                  //console.log('official promises resolved')
-
-                  //NodeSpringUtil.error('Promise scope', type, modulesContainer[type].scope)
                   let mainInstance = modulesContainer[type].impl.scope === 'prototype' ? new modulesContainer[type].impl() : modulesContainer[type].impl
 
                   instances.forEach((instanceToInject) => {
-                    //console.log('instanceToInject', instanceToInject)
-
                     let varType = instanceToInject.constructor.interfacePackagePath
                     let property = mapImplVariable[varType]
 
@@ -280,7 +271,6 @@ export default class ModuleContainer {
                   let postInjectMethod = modulesContainer[type].postInjectMethod
 
                   if(postInjectMethod) {
-                    //console.log('type', type, postInjectMethod)
                     mainInstance[postInjectMethod]()
                   }
 
@@ -294,20 +284,19 @@ export default class ModuleContainer {
               return mainPromise
             } else {
 
-              //NodeSpringUtil.debug('return instance without dependencies', type)
-
               /**
                * If the module doesn't have dependencies, returns the impl if it's loaded or
                * will wait for the implementation that is loaded to dispatch the instance.
                */
               return new Promise((resolve, reject) => {
                 if(modulesContainer[type].impl) {
-                  NodeSpringUtil.debug('No dependencies, instance resolved')
                   modulesContainer[type].instanceResolvedValue = true
 
                   if(modulesContainer[type].impl.scope) {
-                    if(modulesContainer[type].impl.scope === 'singleton')
+                    if(modulesContainer[type].impl.scope === 'singleton') {
+                      console.log(modulesContainer[type])
                       resolve(modulesContainer[type].impl)
+                    }
                     else if(modulesContainer[type].impl.scope === 'prototype')
                       resolve(new modulesContainer[type].impl())
                   } else {
@@ -315,11 +304,7 @@ export default class ModuleContainer {
                   }
                   //resolve(!modulesContainer[type].impl.scope ? modulesContainer[type].impl : new modulesContainer[type].impl())
                 } else {
-                  NodeSpringUtil.debug('No dependencies, observing for impl to be resolved')
-
                   Object.observe(modulesContainer[type], (changes) => {
-                    NodeSpringUtil.debug('impl arrived', type)
-
                     let change = changes.filter((change) => change.type === 'update')[0]
 
                     modulesContainer[type].instanceResolvedValue = true
@@ -348,7 +333,6 @@ export default class ModuleContainer {
       NodeSpringUtil.debug('expectedType', expectedType)
 
       if(ModuleContainer.existsInterface(expectedType) && modulesContainer[expectedType].isInstanceResolved()) {
-        //NodeSpringUtil.debug('exist!')
 
         modulesContainer[expectedType].getInstance().then((instance) => {
           //NodeSpringUtil.debug('promise resolved:', instance)
@@ -363,8 +347,6 @@ export default class ModuleContainer {
           NodeSpringUtil.debug('creating!')
           ModuleContainer.addInterface(expectedType)
         }
-
-        //NodeSpringUtil.debug('modulesContainer[expectedType]', modulesContainer[expectedType])
 
         let myOwnDependents = modulesContainer[expectedType].dependents[type] = {}
 
@@ -402,8 +384,6 @@ export default class ModuleContainer {
   }
 
   static runInjectionResolver(type) {
-
-    //NodeSpringUtil.debug('type, modulesContainer[type].dependencies', type, modulesContainer[type].dependencies)
 
     // Resolve dependencies
     ModuleContainer.resolveDependencies(type, modulesContainer[type].dependencies)

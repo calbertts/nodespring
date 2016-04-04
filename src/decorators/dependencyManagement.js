@@ -35,9 +35,11 @@ export function Inject(typeToInject) {
     throw new NodeSpringException('@Inject expects an Interface but an ' + typeToInject + ' was received.', this, 2)
   }
 
-  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
+  let basePackagePath = path.dirname(NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', ''))
 
   return (target, property, descriptor) => {
+    let packagePath = basePackagePath + '/' + target.constructor.name
+
     descriptor.writable = true
 
     let targetName = global.implContext ? global.implContext.packagePath : packagePath
@@ -79,8 +81,6 @@ export function Implements(type, scope = Scope.SINGLETON) {
 
   global.implContext = type
 
-  //NodeSpringUtil.debug('Impl context:', type.packagePath)
-
   return (target, property, descriptor) => {
     target.scope = scope
     target.interfaceName = type.name
@@ -89,17 +89,7 @@ export function Implements(type, scope = Scope.SINGLETON) {
 
     global.implContext = null
 
-    //NodeSpringUtil.debug('implements:', target.name)
-
-    //NodeSpringUtil.debug('type.packagePath', type.packagePath)
-    //NodeSpringUtil.debug('preConfiguredImpl', ModuleContainer.implConfig)
-
     let preConfiguredImpl = ModuleContainer.implConfig[type.packagePath]
-
-    //NodeSpringUtil.debug('..preConfiguredImpl', preConfiguredImpl)
-    //NodeSpringUtil.debug('target.name', target.name)
-
-    //NodeSpringUtil.debug(target.name, '!==', path.basename(preConfiguredImpl))
 
     if(preConfiguredImpl) {
       if(target.name !== path.basename(preConfiguredImpl)) {
@@ -107,51 +97,6 @@ export function Implements(type, scope = Scope.SINGLETON) {
         return
       }
     }
-
-    /*let interfaceMethods = Object.getOwnPropertyNames(type.prototype)
-    let implMethods = Object.getOwnPropertyNames(target.prototype)
-
-    class ImplementationWrapper {
-      //impl = new target()
-
-      static scope = scope
-      static interfaceName = type.name
-      static interfacePackagePath = type.packagePath
-      static moduleType = 'implementation'
-    }
-
-    implMethods.forEach((implMethod) => {
-      if(interfaceMethods.indexOf(implMethod) < 0 && implMethod !== 'init') {
-        let exceptionFn = () => {
-          let stack = NodeSpringUtil.getStack()
-          NodeSpringUtil.debug(stack);
-          let methodNotDeclared = new NodeSpringException('The method "' + implMethod + '", is not declared on the interface "' + type.name + '", so you cannot call it from here', this, 2)
-          NodeSpringUtil.throwNodeSpringException(methodNotDeclared)
-        }
-
-        Object.defineProperty(exceptionFn, 'name', {
-          value: implMethod,
-          configurable: true
-        })
-
-        ImplementationWrapper.prototype[implMethod] = exceptionFn
-      } else {
-        NodeSpringUtil.debug('ARGS:', NodeSpringUtil.getArgs(target.prototype[implMethod]))
-
-        let fnArgs = NodeSpringUtil.getArgs(target.prototype[implMethod])
-
-        let s = Symbol('type')
-
-        ImplementationWrapper.prototype[implMethod] = (s) => {
-          return target.prototype[implMethod].apply(this, arguments)
-        }
-
-        ImplementationWrapper.prototype[implMethod] = target.prototype[implMethod]
-      }
-    })
-
-    //NodeSpringUtil.debug('target', target.prototype)
-    //NodeSpringUtil.debug('ImplementationWrapper', ImplementationWrapper.prototype)*/
 
     ModuleContainer.addImplementation(type, target)
   }
@@ -169,11 +114,8 @@ export function Interface(interfaceBase) {
     throw new NodeSpringException('@Interface expects a Class but an ' + interfaceBase + ' was received.', this, 2)
   }
 
-  NodeSpringUtil.debug('STARTING INTERFACE', interfaceBase.name)
-  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
-
-  //NodeSpringUtil.debug('packagePath', packagePath)
-  //sNodeSpringUtil.debug('interface:', interfaceBase.name)
+  let basePackagePath = path.dirname(NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', ''))
+  let packagePath = basePackagePath + '/' + interfaceBase.name
 
   class MockedInterface extends Abstract {
     static moduleType = 'interface'
@@ -216,7 +158,8 @@ export function Interface(interfaceBase) {
  * @constructor
  */
 export function PostInject(target, property, descriptor) {
-  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
+  let basePackagePath = path.dirname(NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', ''))
+  let packagePath = basePackagePath + '/' + target.name
   let targetName = global.implContext ? global.implContext.packagePath : packagePath
 
   ModuleContainer.addPostInjectMethod(targetName, property)

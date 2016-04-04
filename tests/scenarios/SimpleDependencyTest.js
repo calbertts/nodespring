@@ -1,4 +1,4 @@
-import TestUtil from './TestUtil.js'
+import TestUtil from './../TestUtil.js'
 import {Interface, Implements, Inject} from '../../src/decorators/dependencyManagement'
 
 
@@ -12,14 +12,11 @@ TestUtil.run(function SimpleDependency(done, fail) {
   class SuperType1 {
     method1(param) {}
   }
-  SuperType1.packagePath = 'path/SuperType1'
 
   @Interface
   class SubType {
     subMethod1(subParam) {}
   }
-  SubType.packagePath = 'path/SubType'
-
 
   @Implements(SuperType1)
   class SuperTypeImpl1 {
@@ -35,13 +32,11 @@ TestUtil.run(function SimpleDependency(done, fail) {
     subMethod1(subParam) {}
   }
 
-  setTimeout(() => {
-    let instanceToCheck = TestUtil.getModuleContainer()['path/SuperType1'].impl
-
-    if(instanceToCheck && instanceToCheck.subTypeVar && instanceToCheck.subTypeVar instanceof SubTypeImpl){
+  TestUtil.getModuleContainer()['/scenarios/SuperType1'].getInstance().then((superType1Instance) => {
+    if(superType1Instance.subTypeVar && superType1Instance.subTypeVar instanceof SubTypeImpl){
       done()
     } else {
       fail("Dependency type doesn't correspond with the expected one")
     }
-  }, 1000)
+  })
 })

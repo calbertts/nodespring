@@ -1,4 +1,4 @@
-import TestUtil from './TestUtil.js'
+import TestUtil from './../TestUtil.js'
 import {Interface, Implements, Inject, PostInject} from '../../src/decorators/dependencyManagement'
 import {Mock, TestClass, Test, Before, InjectMocks} from '../../src/decorators/testing'
 
