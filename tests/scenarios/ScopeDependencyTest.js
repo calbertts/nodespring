@@ -7,10 +7,8 @@ import {Service} from '../../src/decorators/service'
 TestUtil.setup()
 
 /**
- * Test the singleton scope dependencies
  *
- * MyService | -> SuperType | -> SubType  | -> SubType2
- *                          | -> SubType2
+ * Test the scope dependencies
  *
  */
 TestUtil.run(function ScopeDependencies(done, fail) {
