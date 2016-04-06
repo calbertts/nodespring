@@ -13,7 +13,8 @@ import path_module from 'path'
 import NodeSpringUtil from './nodeSpringUtil'
 import NodeSpringException from '../exceptions/NodeSpringException'
 
-let modulesContainer = {}
+global.modulesContainer = {}
+let modulesContainer = global.modulesContainer
 
 export default class ModuleContainer {
 
@@ -50,7 +51,7 @@ export default class ModuleContainer {
         } else {
           if(path.indexOf('.map') < 0) {
             require(path)
-            console.log("Loading file => " + path)
+            NodeSpringUtil.log("Loading file => " + path)
           }
         }
       } catch(e) {

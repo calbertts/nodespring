@@ -6,23 +6,26 @@
 import ModuleContainer from '../core/ModuleContainer'
 import NodeSpringUtil from '../core/NodeSpringUtil'
 import NodeSpringException from '../exceptions/NodeSpringException'
+import path from 'path'
 
 
 export function Get() {
 
-  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
+  let basePackagePath = path.dirname(NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', ''))
   let options = {
     contentType: 'text/html'
   }
 
   let addRoute = (target, property, descriptor) => {
+    let packagePath = basePackagePath + '/' + target.constructor.name
+
     target.packagePath = packagePath
     ModuleContainer.addRoute(target, property, 'get', options.contentType)
   }
 
   if(arguments.length <= 1) {
     if(typeof arguments[0] !== 'object') {
-      throw new NodeSpringException('The options passed to @Get is not valid', this, 2)
+      throw new NodeSpringException('The options passed to @Get are not valid', this, 2)
     }
 
     options = arguments[0] || {}
@@ -44,12 +47,14 @@ export function Get() {
 
 export function Post() {
 
-  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
+  let basePackagePath = path.dirname(NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', ''))
   let options = {
     contentType: 'text/html'
   }
 
   let addRoute = (target, property, descriptor) => {
+    let packagePath = basePackagePath + '/' + target.constructor.name
+
     target.packagePath = packagePath
     ModuleContainer.addRoute(target, property, 'post', options.contentType)
   }

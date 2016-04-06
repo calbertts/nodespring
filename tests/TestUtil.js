@@ -17,7 +17,7 @@ export default class TestUtil {
 
   static timeout = 5000
 
-  static setup(options) {
+  static setup(options = {}) {
     // Global configurations
     if(!global.NodeSpringConfig) {
       global.NodeSpringConfig = {}
@@ -25,20 +25,14 @@ export default class TestUtil {
 
     global.NodeSpringConfig.printExceptions = false
 
-    // App configurations
-    let implConfig = {
-      '/testArtifacts/thirdScenario/interface': '/scenarios/thirdScenario/InterfaceOneImpl2'
-    }
-    ModuleContainer.init(__dirname, null, implConfig)
+    ModuleContainer.init(__dirname, options.nodeSpringApp, options.implConfig || {})
     NodeSpringUtil.logging = true
     NodeSpringUtil.debugging = true
 
-    if(options) {
-      if (options.description)
-        console.log(clc.blue.bold(options.description))
-      if (options.timeout)
-        TestUtil.timeout = options.timeout
-    }
+    if (options.description)
+      console.log(clc.blue.bold(options.description))
+    if (options.timeout)
+      TestUtil.timeout = options.timeout
   }
 
   static fail(msg, err, methodName) {

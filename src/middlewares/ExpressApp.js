@@ -66,7 +66,7 @@ export default class ExpressApp extends NodeSpringApp {
     })
 
     this.server.listen(port, () => {
-      NodeSpringUtil.log('Server running at http://localhost:5000');
+      NodeSpringUtil.log('Server running at http://localhost:5000')
     })
   }
 

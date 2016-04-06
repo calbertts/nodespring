@@ -1,13 +1,10 @@
 import TestUtil from './../TestUtil.js'
-import assert from '../../src/core/assert'
 import {Interface, Implements, Inject, PostInject} from '../../src/decorators/dependencyManagement'
 import {Controller} from '../../src/decorators/controller'
 import {Service} from '../../src/decorators/service'
 
 
-TestUtil.setup({
-  timeout: 1
-})
+TestUtil.setup()
 
 /**
  * Test the PostInject method

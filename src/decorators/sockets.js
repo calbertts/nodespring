@@ -5,14 +5,16 @@
 
 import ModuleContainer from '../core/ModuleContainer'
 import NodeSpringUtil from '../core/NodeSpringUtil'
+import path from 'path'
 
 
 export function SocketListener() {
 
-  let packagePath = NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', '')
+  let basePackagePath = path.dirname(NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', ''))
   let options = {}
 
   let addSocketListener = (target, property, descriptor) => {
+    let packagePath = basePackagePath + '/' + target.constructor.name
     target.packagePath = packagePath
 
     ModuleContainer.addSocketListener(target, property, options)
