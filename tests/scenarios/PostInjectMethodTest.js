@@ -1,6 +1,8 @@
 import TestUtil from './../TestUtil.js'
 import assert from '../../src/core/assert'
 import {Interface, Implements, Inject, PostInject} from '../../src/decorators/dependencyManagement'
+import {Controller} from '../../src/decorators/controller'
+import {Service} from '../../src/decorators/service'
 
 
 TestUtil.setup({
@@ -49,15 +51,6 @@ TestUtil.run(function PostInjectMethod(done, fail) {
 
     @PostInject
     allDependenciesInjected() {
-
-      /*Promise.all([
-        TestUtil.getModuleContainer()['/scenarios/SuperType'].getInstance(),
-        TestUtil.getModuleContainer()['/scenarios/SubType'].getInstance(),
-        TestUtil.getModuleContainer()['/scenarios/SubType2'].getInstance()]
-      ).then((instances) => {
-        console.log('instances=', instances)
-      })*/
-
       if(this.subTypeVar instanceof SubTypeImpl &&
          this.subTypeVar.subType2Var instanceof SubType2Impl &&
          this.anotherSubType2Var instanceof SubType2Impl

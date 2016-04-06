@@ -318,6 +318,7 @@ export default class ModuleContainer {
   }
 
   static addPostInjectMethod(type, methodName) {
+    ModuleContainer.addInterface(type)
     modulesContainer[type].postInjectMethod = methodName
   }
 
