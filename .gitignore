@@ -1,6 +1,5 @@
 /node_modules
 /compiled
-/lib
 /.idea
 npm-debug.log
 src/nodespring.log
