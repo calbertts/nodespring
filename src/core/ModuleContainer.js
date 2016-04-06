@@ -13,9 +13,7 @@ import path_module from 'path'
 import NodeSpringUtil from './nodeSpringUtil'
 import NodeSpringException from '../exceptions/NodeSpringException'
 
-
-//global.modulesContainer = {}
-let modulesContainer = {}//global.modulesContainer
+let modulesContainer = {}
 
 export default class ModuleContainer {
 
