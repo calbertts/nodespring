@@ -72,9 +72,10 @@ export default class ModuleContainer {
 
     ModuleContainer.addInterface(moduleName)
     modulesContainer[moduleName].impl = new moduleDef()
+    modulesContainer[moduleName].impl.packagePath = moduleDef.packagePath
     modulesContainer[moduleName].moduleType = moduleDef.moduleType
 
-    ModuleContainer.runInjectionResolver(moduleName)
+    ModuleContainer.resolveDependencies(moduleName)
   }
 
   static addController(moduleDef, path, namespace) {
@@ -83,9 +84,10 @@ export default class ModuleContainer {
     ModuleContainer.addInterface(moduleName)
     modulesContainer[moduleName].path = path
     modulesContainer[moduleName].impl = new moduleDef()
+    modulesContainer[moduleName].impl.packagePath = moduleDef.packagePath
     modulesContainer[moduleName].moduleType = moduleDef.moduleType
 
-    ModuleContainer.runInjectionResolver(moduleName)
+    ModuleContainer.resolveDependencies(moduleName)
 
     let moduleInfo = modulesContainer[moduleName]
 
@@ -208,193 +210,101 @@ export default class ModuleContainer {
   }
 
   static addInterface(type) {
-    if (!ModuleContainer.existsInterface(type)) {
+    if (modulesContainer[type] === undefined) {
       modulesContainer[type] = {
         impl: null,
-        dependents: {},
         dependencies: {},
         methods: [],
         socketListeners: [],
-        instanceResolvedValue: false,
-        isInstanceResolved: () => {
-          if(modulesContainer[type].moduleType === 'service' || modulesContainer[type].moduleType === 'controller') {
-            return modulesContainer[type].impl !== null
-          } else {
-            return modulesContainer[type].instanceResolvedValue
-          }
-        },
         getInstance: () => {
-          /*if(modulesContainer[type].moduleType === 'service' || modulesContainer[type].moduleType === 'controller') {
-            return new Promise((resolve, reject) => {
-              resolve(modulesContainer[type].impl)
-            })
-          } else {*/
-            let moduleInfo = modulesContainer[type]
-            let dependencies = moduleInfo.dependencies
-
-            if (Object.keys(dependencies).length > 0) {
-              let dependenciesInstancesPromises = []
-              let mapImplVariable = {}
-
-              for(let property in dependencies) {
-                let moduleNeeded = dependencies[property]
-
-                let promise = modulesContainer[moduleNeeded].getInstance()
-
-                mapImplVariable[moduleNeeded] = property
-
-                dependenciesInstancesPromises.push(promise)
-              }
-
-              let mainPromise = new Promise((resolve, reject) => {
-
-                /**
-                 * Wait for the dependencies are resolved to be injected
-                 * in the instance that's being created
-                 */
-                /*Promise.all(dependenciesInstancesPromises).then((instances) => {
-                  NodeSpringUtil.debug('another listener')
-                })*/
-
-                Promise.all(dependenciesInstancesPromises).then((instances) => {
-
-                  let mainInstance = modulesContainer[type].impl.scope === 'prototype' ? new modulesContainer[type].impl() : modulesContainer[type].impl
-
-                  instances.forEach((instanceToInject) => {
-                    let varType = instanceToInject.constructor.interfacePackagePath
-                    let property = mapImplVariable[varType]
-
-                    mainInstance[property] = instanceToInject
-                  })
-
-                  // Call the init method once all the dependencies are created and injected
-                  let postInjectMethod = modulesContainer[type].postInjectMethod
-
-                  if(postInjectMethod) {
-                    mainInstance[postInjectMethod]()
-                  }
-
-                  // Resolve the complete instance to the modules which are waiting for it
-                  resolve(mainInstance)
-                }).catch((err) => {
-                  NodeSpringUtil.error('Error resolving instance for', type, err)
-                })
-              })
-
-              return mainPromise
-            } else {
-
-              /**
-               * If the module doesn't have dependencies, returns the impl if it's loaded or
-               * will wait for the implementation that is loaded to dispatch the instance.
-               */
-              return new Promise((resolve, reject) => {
-                if(modulesContainer[type].impl) {
-                  modulesContainer[type].instanceResolvedValue = true
-
-                  if(modulesContainer[type].impl.scope) {
-                    if(modulesContainer[type].impl.scope === 'singleton') {
-                      console.log(modulesContainer[type])
-                      resolve(modulesContainer[type].impl)
-                    }
-                    else if(modulesContainer[type].impl.scope === 'prototype')
-                      resolve(new modulesContainer[type].impl())
-                  } else {
-                    resolve(modulesContainer[type].impl)
-                  }
-                  //resolve(!modulesContainer[type].impl.scope ? modulesContainer[type].impl : new modulesContainer[type].impl())
-                } else {
-                  Object.observe(modulesContainer[type], (changes) => {
-                    let change = changes.filter((change) => change.type === 'update')[0]
-
-                    modulesContainer[type].instanceResolvedValue = true
-                    resolve(!modulesContainer[type].impl.scope ? modulesContainer[type].impl : new modulesContainer[type].impl())
-                  })
-                }
-              })
-            }
-          //}
-        },
-        injectDependency: (property, impl) => {
-          modulesContainer[type].impl[property] = impl
+          return ModuleContainer.resolveDependencies(type)
         }
       }
     }
   }
 
-  static existsInterface(type) {
-    return modulesContainer[type] !== undefined
-  }
+  static resolveDependencies(type) {
+    let moduleInfo = modulesContainer[type]
+    let dependencies = moduleInfo.dependencies
 
-  static resolveDependencies(type, dependencies) {
-    for(let property in dependencies) {
-      let expectedType = dependencies[property]
+    if (modulesContainer[type].impl && Object.keys(dependencies).length > 0) {
+      let dependenciesInstancesPromises = []
+      let mapImplVariable = {}
 
-      NodeSpringUtil.debug('expectedType', expectedType)
+      for(let property in dependencies) {
+        let moduleNeeded = dependencies[property]
+        let promise = modulesContainer[moduleNeeded].getInstance()
 
-      if(ModuleContainer.existsInterface(expectedType) && modulesContainer[expectedType].isInstanceResolved()) {
+        mapImplVariable[moduleNeeded] = property
 
-        modulesContainer[expectedType].getInstance().then((instance) => {
-          //NodeSpringUtil.debug('promise resolved:', instance)
-          modulesContainer[type].injectDependency(property, instance)
-
-          let targetInstanceName = modulesContainer[type].impl.scope ? modulesContainer[type].impl.name : modulesContainer[type].impl.constructor.name
-          NodeSpringUtil.log('Dispatching an instance of ', modulesContainer[expectedType].impl.constructor.name, ' for ', targetInstanceName + '.' + property)
-        })
-      } else {
-        NodeSpringUtil.debug('doesnt exist!')
-        if(!ModuleContainer.existsInterface(expectedType)) {
-          NodeSpringUtil.debug('creating!')
-          ModuleContainer.addInterface(expectedType)
-        }
-
-        let myOwnDependents = modulesContainer[expectedType].dependents[type] = {}
-
-        myOwnDependents[property] = {
-          dispatched: false,
-          callback: (instance) => {
-            NodeSpringUtil.debug("I'm here!", instance)
-            modulesContainer[type].injectDependency(property, instance)
-
-            let targetInstanceName = modulesContainer[type].impl.scope ? modulesContainer[type].impl.name : modulesContainer[type].impl.constructor.name
-            NodeSpringUtil.log('Dispatching an instance of ', instance.constructor.name, ' for ', targetInstanceName + '.' + property)
-          }
-        }
+        dependenciesInstancesPromises.push(promise)
       }
-    }
-  }
 
-  static dispatchDependents(type, dependents) {
-    for(let className in dependents) {
-      let classProperties = dependents[className]
+      return new Promise((resolve, reject) => {
 
-      for(let property in classProperties) {
-        let resolverCallbackInfo = classProperties[property]
+        /**
+         * Wait for the dependencies are resolved to be injected
+         * in the instance that's being created
+         */
 
-        modulesContainer[type].getInstance().then((instance) => {
-          if(!resolverCallbackInfo.dispatched) {
-            resolverCallbackInfo.callback(instance)
-            resolverCallbackInfo.dispatched = true
+        Promise.all(dependenciesInstancesPromises).then((instances) => {
+
+          let mainInstance = modulesContainer[type].impl.scope === 'prototype' ? new modulesContainer[type].impl() : modulesContainer[type].impl
+
+          instances.forEach((instanceToInject) => {
+            let varType = instanceToInject.constructor.interfacePackagePath || instanceToInject.packagePath
+            let property = mapImplVariable[varType]
+
+            mainInstance[property] = instanceToInject
+          })
+
+          // Call the init method once all the dependencies are created and injected
+          let postInjectMethod = modulesContainer[type].postInjectMethod
+
+          if(postInjectMethod) {
+            mainInstance[postInjectMethod]()
           }
+
+          // Resolve the complete instance to the modules which are waiting for it
+          resolve(mainInstance)
         }).catch((err) => {
-          NodeSpringUtil.error('Error dispatching instance for the property', property)
+          NodeSpringUtil.error('Error resolving instance for', type, err)
+          reject(err)
         })
-      }
+      })
+    } else {
+
+      /**
+       * If the module doesn't have dependencies, returns the impl if it's loaded or
+       * will wait for the implementation that is loaded to dispatch the instance.
+       */
+
+      return new Promise((resolve, reject) => {
+        if(modulesContainer[type].impl) {
+          if(modulesContainer[type].impl.scope) {
+            if(modulesContainer[type].impl.scope === 'singleton') {
+              resolve(modulesContainer[type].impl)
+            }
+            else if(modulesContainer[type].impl.scope === 'prototype')
+              resolve(new modulesContainer[type].impl())
+          } else {
+            resolve(modulesContainer[type].impl)
+          }
+        } else {
+          Object.observe(modulesContainer[type], (changes) => {
+            let change = changes.filter((change) => change.type === 'update')[0]
+
+            if(Object.keys(modulesContainer[type].dependencies).length > 0) {
+              modulesContainer[type].getInstance().then((instance) => {
+                resolve(instance)
+              })
+            } else {
+              resolve(!modulesContainer[type].impl.scope ? modulesContainer[type].impl : new modulesContainer[type].impl())
+            }
+          })
+        }
+      })
     }
-  }
-
-  static runInjectionResolver(type) {
-
-    // Resolve dependencies
-    ModuleContainer.resolveDependencies(type, modulesContainer[type].dependencies)
-
-    // Dispatch registered dependents
-    ModuleContainer.dispatchDependents(type, modulesContainer[type].dependents)
-
-    // Wait and dispatch for future dependents to be resolved
-    Object.observe(modulesContainer[type].dependents, (changes) => {
-      ModuleContainer.dispatchDependents(type, modulesContainer[type].dependents)
-    })
   }
 
   static addDependency(type, property, typeToInject) {
@@ -405,7 +315,7 @@ export default class ModuleContainer {
   static addImplementation(type, impl) {
     if(ModuleContainer.validateImpl(type, impl)) {
       modulesContainer[type.packagePath].impl = (impl.scope === 'prototype') ? impl : new impl()
-      ModuleContainer.runInjectionResolver(type.packagePath)
+      ModuleContainer.resolveDependencies(type.packagePath)
     }
   }
 
@@ -415,9 +325,5 @@ export default class ModuleContainer {
 
   static getModuleContainer() {
     return modulesContainer
-  }
-
-  static clearModuleContainer() {
-    modulesContainer = {}
   }
 }

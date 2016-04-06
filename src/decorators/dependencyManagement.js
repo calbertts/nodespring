@@ -117,6 +117,8 @@ export function Interface(interfaceBase) {
   let basePackagePath = path.dirname(NodeSpringUtil.getStack().replace(ModuleContainer.appDir, '').replace('.js', ''))
   let packagePath = basePackagePath + '/' + interfaceBase.name
 
+  ModuleContainer.addInterface(packagePath)
+
   class MockedInterface extends Abstract {
     static moduleType = 'interface'
     static packagePath = packagePath

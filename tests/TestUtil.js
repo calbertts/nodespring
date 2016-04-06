@@ -125,10 +125,12 @@ export default class TestUtil {
 }
 
 if(process.argv[2] === 'runScenarios') {
-  if(process.argv[3])
+  if(process.argv[3]) {
+    console.log(clc.blue.bold('Running Test: ') + clc.blue(process.argv[3]) + '\n')
     TestUtil.runScenario(process.argv[3]).then((code) => {
       console.log(clc.green.bold('The test has finished!\n'))
     })
+  }
   else
     TestUtil.runScenarios()
 }

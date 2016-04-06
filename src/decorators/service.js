@@ -15,6 +15,5 @@ export function Service(serviceClass) {
   serviceClass.packagePath = serviceClass.packagePath || packagePath
   serviceClass.moduleType = 'service'
 
-  //console.log(NodeSpringUtil.getStack())
   ModuleContainer.addService(serviceClass)
 }

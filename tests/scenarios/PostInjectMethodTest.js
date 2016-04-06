@@ -23,19 +23,16 @@ TestUtil.run(function PostInjectMethod(done, fail) {
   class SuperType {
     method1(param) {}
   }
-  SuperType.packagePath = 'path/SuperType'
 
   @Interface
   class SubType {
     subMethod1(subParam) {}
   }
-  SubType.packagePath = 'path/SubType'
 
   @Interface
   class SubType2 {
     subMethod1(subParam) {}
   }
-  SubType2.packagePath = 'path/SubType2'
 
 
   /**
@@ -52,12 +49,23 @@ TestUtil.run(function PostInjectMethod(done, fail) {
 
     @PostInject
     allDependenciesInjected() {
-      console.log('OKKK')
 
-      assert.notEqual(this.subTypeVar, null)
-      assert.notEqual(this.anotherSubType2Var, null)
+      /*Promise.all([
+        TestUtil.getModuleContainer()['/scenarios/SuperType'].getInstance(),
+        TestUtil.getModuleContainer()['/scenarios/SubType'].getInstance(),
+        TestUtil.getModuleContainer()['/scenarios/SubType2'].getInstance()]
+      ).then((instances) => {
+        console.log('instances=', instances)
+      })*/
 
-      fail("K")
+      if(this.subTypeVar instanceof SubTypeImpl &&
+         this.subTypeVar.subType2Var instanceof SubType2Impl &&
+         this.anotherSubType2Var instanceof SubType2Impl
+      ) {
+        done()
+      } else {
+        fail("Dependency type doesn't correspond with the expected one")
+      }
     }
 
     method1(param) {}
