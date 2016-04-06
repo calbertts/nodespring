@@ -3,9 +3,10 @@ import TestUtil from './../TestUtil.js'
 import NodeSpringApp from '../../src/core/NodeSpringApp'
 import {Controller} from '../../src/decorators/controller'
 import {Post, Get} from '../../src/decorators/httpMethods'
+import {SocketListener} from '../../src/decorators/sockets'
 
 
-TestUtil.run(function ControllerHTTPMethodsTest(done, fail) {
+TestUtil.run(function ControllerSocketListenersTest(done, fail) {
 
   class TestNodeSpringApp extends NodeSpringApp {
     bindURL(method, url, callback) {}
@@ -20,27 +21,25 @@ TestUtil.run(function ControllerHTTPMethodsTest(done, fail) {
     nodeSpringApp: new TestNodeSpringApp()
   })
 
-  @Controller({path: 'myPath'})
+  @Controller({namespace: '/server'})
   class MyController {
 
-    @Get
-    postMethod(postParams) {}
+    @SocketListener
+    onClientEvent() {}
 
-    @Post({contentType: 'application/json'})
-    getMethod(getParams) {}
+    @SocketListener({eventName: 'customEvent'})
+    onCustomClientEvent() {}
   }
 
   let controllerData = TestUtil.getModuleContainer()['/scenarios/MyController']
-  let postMethod = controllerData.methods[0]
-  let getMethod = controllerData.methods[1]
+  let onClientEventData = controllerData.socketListeners[0]
+  let onCustomClientData = controllerData.socketListeners[1]
 
-  if(postMethod.methodName === 'postMethod' &&
-     postMethod.httpMethod === 'get' &&
-     postMethod.contentType === 'text/html' &&
+  if(onClientEventData.methodName === 'onClientEvent' &&
+     onClientEventData.eventName === 'onClientEvent' &&
 
-     getMethod.methodName === 'getMethod' &&
-     getMethod.httpMethod === 'post' &&
-     getMethod.contentType === 'application/json'
+     onCustomClientData.methodName === 'onCustomClientEvent' &&
+     onCustomClientData.eventName === 'customEvent'
   ) {
     done()
   } else {
