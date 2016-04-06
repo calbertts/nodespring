@@ -1,6 +1,6 @@
 {
   "name": "nodespring",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Dependency Injection and Unit Testing for NodeJS using Javascript decorators",
   "main": "index.js",
   "dependencies": {

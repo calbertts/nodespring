@@ -78,6 +78,7 @@ export default class ExpressApp extends NodeSpringApp {
     for(let namespace in socketListeners) {
       let namespaceData = socketListeners[namespace]
       let scope = this.io.of(namespace)
+      namespaceData.instance.clients = scope
 
       scope.on('connection', (socket) => {
         if('onConnection' in namespaceData.instance) {
