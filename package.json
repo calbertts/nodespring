@@ -1,25 +1,33 @@
 {
   "name": "nodespring",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Dependency Injection and Unit Testing for NodeJS using Javascript decorators",
   "main": "index.js",
   "dependencies": {
-    "cli-color": "^1.1.0",
-    "exectimer": "^2.0.0",
-    "express": "^4.13.4",
-    "socket.io": "^1.4.5",
-    "util": "^0.10.3",
     "babel-cli": "^6.4.5",
     "babel-core": "^6.4.5",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
     "babel-preset-es2015": "^6.3.13",
-    "babel-preset-stage-0": "^6.3.13"
+    "babel-preset-stage-0": "^6.3.13",
+    "chokidar": "^1.4.3",
+    "cli-color": "^1.1.0",
+    "exectimer": "^2.0.0",
+    "express": "^4.13.4",
+    "lodash": "^4.8.2",
+    "mkdirp": "^0.5.1",
+    "rimraf": "^2.5.2",
+    "socket.io": "^1.4.5",
+    "util": "^0.10.3"
   },
   "scripts": {
     "compile-index": "babel -w index.es6 -o index.js",
     "compile": "npm run compile-index & babel -w src/ -d lib/ -s",
     "test": "babel-node tests/TestUtil.js runScenarios"
   },
+  "engines" : {
+    "node" : ">5.0.0"
+  },
+  "engineStrict": "true",
   "author": "calbertts (calbertts@gmail.com)",
   "license": "MIT",
   "repository": {
