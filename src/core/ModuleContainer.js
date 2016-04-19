@@ -215,6 +215,7 @@ export default class ModuleContainer {
         dependencies: {},
         methods: [],
         socketListeners: [],
+        postInjectMethodExecuted: false,
         getInstance: () => {
           return ModuleContainer.resolveDependencies(type)
         }
@@ -260,8 +261,9 @@ export default class ModuleContainer {
           // Call the init method once all the dependencies are created and injected
           let postInjectMethod = modulesContainer[type].postInjectMethod
 
-          if(postInjectMethod) {
+          if(postInjectMethod && !modulesContainer[type].postInjectMethodExecuted) {
             mainInstance[postInjectMethod]()
+            modulesContainer[type].postInjectMethodExecuted = true
           }
 
           // Resolve the complete instance to the modules which are waiting for it
