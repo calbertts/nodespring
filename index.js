@@ -1,6 +1,6 @@
 'use strict';
 
-var _moduleContainer = require('./lib/core/moduleContainer');
+var _ModuleContainer = require('./lib/core/ModuleContainer');
 
 var _httpMethods = require('./lib/decorators/httpMethods');
 
@@ -20,7 +20,7 @@ var _ExpressApp2 = _interopRequireDefault(_ExpressApp);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-exports.ModuleContainer = _moduleContainer.ModuleContainer;
+exports.ModuleContainer = _ModuleContainer.ModuleContainer;
 exports.Get = _httpMethods.Get;
 exports.Post = _httpMethods.Post;
 exports.SocketListener = _sockets.SocketListener;

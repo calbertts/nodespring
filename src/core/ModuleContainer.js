@@ -10,7 +10,7 @@
 
 import fs from 'fs'
 import path_module from 'path'
-import NodeSpringUtil from './nodeSpringUtil'
+import NodeSpringUtil from './NodeSpringUtil'
 import NodeSpringException from '../exceptions/NodeSpringException'
 
 global.modulesContainer = {}

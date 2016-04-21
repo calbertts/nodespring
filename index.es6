@@ -1,4 +1,4 @@
-import {ModuleContainer} from './lib/core/moduleContainer'
+import {ModuleContainer} from './lib/core/ModuleContainer'
 import {Get, Post} from './lib/decorators/httpMethods'
 import {SocketListener} from './lib/decorators/sockets'
 import {Interface, Implements, Inject, PostInject, Scope} from './lib/decorators/dependencyManagement'
