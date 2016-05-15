@@ -262,8 +262,10 @@ export default class ModuleContainer {
           let postInjectMethod = modulesContainer[type].postInjectMethod
 
           if(postInjectMethod && !modulesContainer[type].postInjectMethodExecuted) {
-            mainInstance[postInjectMethod]()
             modulesContainer[type].postInjectMethodExecuted = true
+            mainInstance[postInjectMethod]()
+
+            delete modulesContainer[type].postInjectMethod
           }
 
           // Resolve the complete instance to the modules which are waiting for it
