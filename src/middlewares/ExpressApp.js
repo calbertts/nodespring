@@ -57,6 +57,7 @@ export default class ExpressApp extends NodeSpringApp {
 
   configExpressApp() {
     const port = this.config.port
+    const hostname = this.config.hostname || 'localhost'
     this.expressApp = express()
 
     this.server = http.createServer(this.expressApp)
@@ -65,8 +66,8 @@ export default class ExpressApp extends NodeSpringApp {
       res.send('Hello World!');
     })
 
-    this.server.listen(port, () => {
-      NodeSpringUtil.log('Server running at http://localhost:5000')
+    this.server.listen(port, hostname, () => {
+      console.log(`Server running at http://${hostname}:${port}`)
     })
   }
 
