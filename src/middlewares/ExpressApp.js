@@ -6,6 +6,8 @@
 import NodeSpringApp from '../core/NodeSpringApp'
 import NodeSpringUtil from '../core/NodeSpringUtil'
 import express from 'express'
+import cluster from 'cluster'
+import sticky from 'sticky-session'
 import http from 'http'
 
 
@@ -58,17 +60,34 @@ export default class ExpressApp extends NodeSpringApp {
   configExpressApp() {
     const port = this.config.port
     const hostname = this.config.hostname || 'localhost'
-    this.expressApp = express()
 
+    this.expressApp = express()
     this.server = http.createServer(this.expressApp)
 
-    this.bindURL('get', '/', (req, res) => {
-      res.send('Hello World!');
-    })
+    if(this.config.loadbalancer) {
+      if (!sticky.listen(this.server, port)) {
+        this.server.once('listening', () => {
+          console.log(`Server running at http://${hostname}:${port}`)
+        })
+      } else {
+        this.bindURL('get', '/', (req, res) => {
+          res.send('Hello World!');
+        })
+      }
 
-    this.server.listen(port, hostname, () => {
-      console.log(`Server running at http://${hostname}:${port}`)
-    })
+      cluster.on('exit', function (worker) {
+        console.log('Worker %d died :(', worker.id)
+        cluster.fork()
+      })
+    } else {
+      this.bindURL('get', '/', (req, res) => {
+        res.send('Hello World!');
+      })
+
+      this.server.listen(port, hostname, () => {
+        console.log(`Server running at http://${hostname}:${port}`)
+      })
+    }
   }
 
   configureSocketListeners() {
