@@ -8,14 +8,14 @@ NodeSpring is a framework to create NodeJS applications using common patterns us
 
 Command line tool to manage with **Nodespring** apps easier:
 ```bash
-$ npm install nodespring-cli
+$ npm install nodespring-cli -g
 ```
 
 Generating apps:
 ```bash
 $ nodespring create:app myApp
 ```
-Once the app is generated all the needed dependencies are gonna be installed.
+Once the app was created all the needed dependencies are gonna be installed.
 
 Once you have your app created, you can run it executing:
 ```bash
