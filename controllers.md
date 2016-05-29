@@ -25,5 +25,16 @@ import {Controller} from 'nodespring'
 export default class MyController {
 
   // Methods to handle the HTTP requests
-}```
+}
+```
 
+When you create a Controller, an URL is automatically created: http://localhost:5000/MyController
+
+If you want to change the name used in the URL, you can do:
+
+```javascript
+@Controller({path: 'users'})
+export default class MyController {
+  ...
+}
+```
