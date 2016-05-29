@@ -7,4 +7,6 @@ Create controllers by using:
 $ nodespring create:controller MyController
 ```
 
-How to use it:
+
+### How to use it
+
