@@ -10,7 +10,8 @@
         "tbfed-theme",
         "maxiang",
         "extend-default-theme",
-        "fontsettings"
+        "fontsettings",
+        "customtheme"
     ],
     "pluginsConfig": {}
 }
