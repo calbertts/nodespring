@@ -2,7 +2,8 @@
     "plugins": [
         "sellerui",
         "theme-api",
-        "theme-default"
+        "theme-default",
+        "theme-official"
     ],
     "pluginsConfig": {}
 }
