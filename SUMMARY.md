@@ -1,6 +1,6 @@
 # Summary
 
-* [Introduction](README.md)
+* [Getting started](README.md)
 * [Controllers](controllers.md)
    * @Controller
    * HTTP Methods
