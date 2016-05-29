@@ -14,3 +14,8 @@ Command line tool:
 ```bash
 $ npm install nodespring
 ```
+
+Generating apps:
+```bash
+$ nodespring create:app myApp
+```
