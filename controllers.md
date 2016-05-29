@@ -41,5 +41,14 @@ Now we can access this controller in this way: http://localhost:5000/users
 
 <br/>
 
-When you go to some of those URLs above, you aren't going to get nothing unless you have an `index` method where you define what you want to send or render as a response.
+When you go to some of those URLs above, you aren't going to get nothing unless you have an `index` method where you define what you want to send or render as a response:
 
+```javascript
+@Controller({path: 'users'})
+export default class MyController {
+  
+  index() {
+    
+  }
+}
+```
