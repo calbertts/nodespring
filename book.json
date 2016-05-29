@@ -3,7 +3,8 @@
         "sellerui",
         "theme-api",
         "theme-default",
-        "theme-official"
+        "theme-official",
+        "wabtheme"
     ],
     "pluginsConfig": {}
 }
