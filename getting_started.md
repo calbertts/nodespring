@@ -19,3 +19,9 @@ Generating apps:
 ```bash
 $ nodespring create:app myApp
 ```
+
+Once you have your app created, you can run it executing:
+```bash
+$ cd myApp
+$ nodespring serve
+```
