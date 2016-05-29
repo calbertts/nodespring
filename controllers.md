@@ -60,4 +60,4 @@ As you can see, the way to access to the `request` and `response` objects from a
 In this case:
 `this.index.request` or `this.index.response`
 
-Those objects correspond to the ones provided by *Express* since we're using it together with **NodeSpring**
+Those objects correspond to the ones provided by *Express* since we're using it together with **NodeSpring**.
