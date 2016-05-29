@@ -6,3 +6,5 @@ Create controllers by using:
 ```bash
 $ nodespring create:controller MyController
 ```
+
+How to use it:
