@@ -10,7 +10,7 @@ Installation:
 $ npm install nodespring
 ```
 
-To install the command line tool:
+Command line tool:
 ```bash
 $ npm install nodespring
 ```
