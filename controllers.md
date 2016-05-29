@@ -40,3 +40,4 @@ export default class MyController {
 Now we can access this controller in this way: http://localhost:5000/users
 
 When you go to some of those URLs above, you aren't going to get nothing unless you have an `index` method where you define what you want to send or render as a response.
+
