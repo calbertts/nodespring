@@ -9,7 +9,8 @@
         "theme-creative",
         "tbfed-theme",
         "maxiang",
-        "extend-default-theme"
+        "extend-default-theme",
+        "fontsettings"
     ],
     "pluginsConfig": {}
 }
