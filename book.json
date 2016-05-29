@@ -1,17 +1,4 @@
 {
-    "plugins": [
-        "sellerui",
-        "theme-api",
-        "theme-default",
-        "theme-official",
-        "wabtheme",
-        "theme-faq",
-        "theme-creative",
-        "tbfed-theme",
-        "maxiang",
-        "extend-default-theme",
-        "fontsettings",
-        "customtheme"
-    ],
+    "plugins": [],
     "pluginsConfig": {}
 }
