@@ -38,3 +38,4 @@ export default class MyController {
   ...
 }
 ```
+Now we can access this controller in this way: http://localhost:5000/users
