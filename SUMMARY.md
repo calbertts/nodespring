@@ -1,6 +1,6 @@
 # Summary
 
-* [Introduction](README.md)
+* Introduction
 * [Getting started](getting_started.md)
 * [Controllers](controllers.md)
   * @Controller
