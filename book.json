@@ -1,6 +1,7 @@
 {
     "plugins": [
-        "sellerui"
+        "sellerui",
+        "theme-api"
     ],
     "pluginsConfig": {}
 }
