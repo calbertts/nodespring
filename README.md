@@ -15,7 +15,7 @@ Generating apps:
 ```bash
 $ nodespring create:app myApp
 ```
-Once the app was created all the needed dependencies are gonna be installed.
+Once the app is created all the needed dependencies are gonna be installed.
 
 Once you have your app created, you can run it executing:
 ```bash
