@@ -6,7 +6,7 @@ A Controller is a Javascript class where you define the end-points you have in y
 &nbsp;
 
 
-#### How to create them
+#### 2.1 How to create them
 ```bash
 $ nodespring create:controller MyController
 ```
