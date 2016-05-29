@@ -48,7 +48,7 @@ When you go to some of those URLs above, you aren't going to get nothing unless 
 export default class MyController {
   
   index() {
-    
+    this.index.response.render('viewa/index.html')
   }
 }
 ```
