@@ -41,7 +41,7 @@ Now we can access this controller in this way: http://localhost:5000/users
 
 <br/>
 
-When you go to some of those URLs above, you aren't gonna get nothing unless you have an `index` method where you define what you want to send or render as a response:
+When you go to some of those URLs above, you aren't gonna get nothing, unless you have an `index` method where you define what you want to send or render as a response:
 
 ```javascript
 @Controller({path: 'users'})
@@ -53,6 +53,6 @@ export default class MyController {
 }
 ```
 
-As you can see, the way to access to the `request` and `response` objects is:
+As you can see, the way to access to the `request` and `response` objects from any point of the *controller* is:
 
 `this[method].request` or `this[method].response`
