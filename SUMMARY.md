@@ -5,6 +5,7 @@
 * [Controllers](controllers.md)
   * @Controller
   * HTTP Methods
+  * Socket.io
 * Services
   * @Service
 * Dependency Injection
