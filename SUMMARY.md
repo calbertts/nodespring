@@ -2,7 +2,6 @@
 
 * [Getting started](README.md)
 * [Controllers](controllers.md)
-   * @Controller
    * HTTP Methods
    * Sockets
 * Services
