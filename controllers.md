@@ -3,9 +3,7 @@
 A Controller is a Javascript class where you define the end-points you have in your API. Controllers has the purpose of handling the HTTP requests and call the service layer.
 
 
-
----
-
+&nbsp;
 
 
 #### How to create them
@@ -13,10 +11,11 @@ A Controller is a Javascript class where you define the end-points you have in y
 $ nodespring create:controller MyController
 ```
 
+&nbsp;
 
 #### @Controller
 
-This decorator expects a class to be used as a Controller
+This decorator expects a class to as a Controller
 
 ```javascript
 import {Controller} from 'nodespring'
