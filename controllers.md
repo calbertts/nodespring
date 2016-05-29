@@ -57,5 +57,7 @@ As you can see, the way to access to the `request` and `response` objects from a
 
 `this[method].request` or `this[method].response`
 
-For example:
+In this case:
 `this.index.request` or `this.index.response`
+
+Since, we're using Express together with *NodeSpring* 
