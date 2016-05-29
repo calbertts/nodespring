@@ -1,7 +1,8 @@
 {
     "plugins": [
         "sellerui",
-        "theme-api"
+        "theme-api",
+        "theme-default"
     ],
     "pluginsConfig": {}
 }
