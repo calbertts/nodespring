@@ -53,3 +53,6 @@ export default class MyController {
 }
 ```
 
+As you can see, the way to access to the `request` and `response` objects is:
+
+`this[method].request` or `this[method].response`
