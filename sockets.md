@@ -6,5 +6,7 @@
 @SocketListener
 onServerEvent(data, socket, io) {
   // your code here
+  
+  socket.emit('clientEvent', responseData)
 }
 ```
