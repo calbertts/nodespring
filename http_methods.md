@@ -34,3 +34,4 @@ getJSONObject(id, name) {
 
 Each decorated method is an end-point:
 
+http://localhost:5000/MyController/getMessage http://localhost:5000/MyController/getJSONObject 
