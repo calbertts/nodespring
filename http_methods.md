@@ -18,10 +18,7 @@ export default class MyController {
     return "Hi " + name
   }
   
-  @Put
-  getGreet(name) {
-    return "Hi " + name
-  }
-  
-  // and so on...
+  // the same for PUT, DELETE and so on
 }```
+
+Also if you want to return a JSON or any other kind of contentType, you can do:
