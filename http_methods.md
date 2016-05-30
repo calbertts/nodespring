@@ -17,4 +17,9 @@ export default class MyController {
   getGreet(name) {
     return "Hi " + name
   }
+  
+  @Put
+  getGreet(name) {
+    return "Hi " + name
+  }
 }```
