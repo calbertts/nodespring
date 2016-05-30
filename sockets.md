@@ -4,7 +4,7 @@
 
 ```
 @SocketListener
-getGreet(name) {
+onServerEvent(name) {
   return "Hi " + name
 }
 ```
