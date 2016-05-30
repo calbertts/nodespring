@@ -20,7 +20,7 @@ $ nodespring create:app myApp
 
 <br/>
 
-Once you have your app created, you can run it executing:
+Once the app is ready, you can run it executing:
 ```bash
 $ cd myApp
 $ nodespring serve
