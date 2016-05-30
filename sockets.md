@@ -10,3 +10,5 @@ onServerEvent(data, socket, io) {
   socket.emit('clientEvent', responseData)
 }
 ```
+
+You can use the `io` to acces to the rest of the namespaces
