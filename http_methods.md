@@ -31,3 +31,6 @@ getJSONObject(id, name) {
     userName: name
   }
 }```
+
+Each decorated method is an end-point:
+
