@@ -1,6 +1,6 @@
 # Services
 
-Services are just modules where you define your business logic
+Services are just modules where you define your business logic, all the modules are instantiated where the application starts
 
 
 <br/>
