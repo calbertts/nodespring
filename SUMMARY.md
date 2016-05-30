@@ -3,7 +3,7 @@
 * [Getting started](README.md)
 * [Controllers](controllers.md)
    * [HTTP Methods](http_methods.md)
-   * Sockets
+   * [Sockets](sockets.md)
 * Services
    * @Service
 * Dependency Injection
