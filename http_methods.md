@@ -27,4 +27,6 @@ export default class MyController {
   getGreet(name) {
     return "Hi " + name
   }
+  
+  // and so on...
 }```
