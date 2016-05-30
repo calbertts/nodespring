@@ -11,4 +11,4 @@ onServerEvent(data, socket, io) {
 }
 ```
 
-You can use the `io` object to access to the rest of the namespaces.
+You can use the **`io`** object to access to the rest of the namespaces.
