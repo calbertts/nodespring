@@ -1,6 +1,6 @@
 # HTTP Methods
 
-It's to possible handle all kind of 
+You can also handle the 
 
 ```javascript
 import {Controller, Post, Get} from 'nodespring'
