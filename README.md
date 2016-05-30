@@ -11,14 +11,10 @@ Command line tool to manage with **Nodespring** apps easier:
 $ npm install nodespring-cli -g
 ```
 
-<br/>
-
 Generating apps:
 ```bash
 $ nodespring create:app myApp
 ```
-
-<br/>
 
 Once the app is ready, you can run it executing:
 ```bash
