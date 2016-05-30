@@ -5,6 +5,6 @@
 ```javascript
 @SocketListener
 onServerEvent(data, socket, io) {
-  return "Hi " + name
+  // your code here
 }
 ```
