@@ -22,3 +22,12 @@ export default class MyController {
 }```
 
 Also if you want to return a JSON or any other kind of contentType, you can do:
+
+```javascript
+@Post({contentType: 'application/json'})
+getJSONObject(id, name) {
+  return {
+    id: id,
+    userName: name
+  }
+}```
