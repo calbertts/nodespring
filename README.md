@@ -4,7 +4,7 @@
 
 NodeSpring is a framework to create NodeJS applications using common patterns used in other programming languages and frameworks like Java and Spring.
 
-&nbsp;
+<br/>
 
 Command line tool to manage with **Nodespring** apps easier:
 ```bash
