@@ -23,10 +23,5 @@ export default class MyController {
     return "Hi " + name
   }
   
-  @Delete
-  getGreet(name) {
-    return "Hi " + name
-  }
-  
   // and so on...
 }```
