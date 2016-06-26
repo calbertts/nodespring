@@ -9,6 +9,8 @@ import express from 'express'
 import cluster from 'cluster'
 import sticky from 'sticky-session'
 import http from 'http'
+import https from 'https'
+import fs from 'fs'
 
 
 export default class ExpressApp extends NodeSpringApp {
@@ -62,7 +64,17 @@ export default class ExpressApp extends NodeSpringApp {
     const hostname = this.config.hostname || 'localhost'
 
     this.expressApp = express()
-    this.server = http.createServer(this.expressApp)
+
+    if(this.config.https) {
+      let options = {
+        key: fs.readFileSync(this.config.https.key),
+        cert: fs.readFileSync(this.config.https.cert)
+      }
+
+      this.server = https.createServer(options, this.expressApp)
+    } else {
+      this.server = http.createServer(this.expressApp)
+    }
 
     if(this.config.loadbalancer) {
       if (!sticky.listen(this.server, port)) {
