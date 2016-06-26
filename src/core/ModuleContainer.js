@@ -49,7 +49,7 @@ export default class ModuleContainer {
             load(f)
           }
         } else {
-          if(path.indexOf('.map') < 0) {
+          if(path_module.extname(path) === '.js') {
             require(path)
           }
         }
