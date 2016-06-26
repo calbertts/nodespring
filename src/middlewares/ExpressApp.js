@@ -83,7 +83,10 @@ export default class ExpressApp extends NodeSpringApp {
         })
       } else {
         this.bindURL('get', '/', (req, res) => {
-          res.send('Hello World!');
+          if(this.config.rootController)
+            this.config.rootController(req, res)
+          else
+            res.send('')
         })
       }
 
@@ -93,7 +96,10 @@ export default class ExpressApp extends NodeSpringApp {
       })
     } else {
       this.bindURL('get', '/', (req, res) => {
-        res.send('Hello World!');
+        if(this.config.rootController)
+          this.config.rootController(req, res)
+        else
+          res.send('')
       })
 
       this.server.listen(port, hostname, () => {

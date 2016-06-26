@@ -51,7 +51,6 @@ export default class ModuleContainer {
         } else {
           if(path.indexOf('.map') < 0) {
             require(path)
-            NodeSpringUtil.log("Loading file => " + path)
           }
         }
       } catch(e) {
