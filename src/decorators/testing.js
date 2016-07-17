@@ -22,10 +22,11 @@ export function TestClass(testClass) {
     throw new NodeSpringException('@TestClass expects a Class but an ' + testClass + ' was received.', this, 2)
   }
 
+  let testClassObj = new testClass()
+  let className = testClassObj.constructor.name
+
   NodeSpringUtil.logging = true
   NodeSpringUtil.log(clc.blue.bold('NodeSpring Unit Test Runner:', clc.yellow(className, '\n')))
-
-  let testClassObj = new testClass()
 
   // Inject mocks into the object to test
   for(let classProp in objectToTest.dependencies) {
@@ -53,7 +54,6 @@ export function TestClass(testClass) {
   let testingMethods = Object.getOwnPropertyNames(testClass.prototype)
 
   // Running all methods
-  let className = testClassObj.constructor.name
   let beforeMethods = testingMethods.filter((method) => {return testClassObj[method].beforeMethod === true})
   let testMethods = testingMethods.filter((method) => {return testClassObj[method].testMethod === true})
   let promises = []
@@ -61,6 +61,8 @@ export function TestClass(testClass) {
     success: [],
     failed: []
   }
+  let passedSymbol = process.platform === 'win32' ? 'OK' : '✔'
+  let failedSymbol = process.platform === 'win32' ? 'FAIL' : '✘'
 
   let tick = new t.Tick(className)
   tick.start()
@@ -76,9 +78,6 @@ export function TestClass(testClass) {
       Object.assign(assertInstance, assert)
 
       assertInstance.done = () => {
-        let passedSymbol = process.platform === 'win32' ? 'OK' : '✔'
-        let failedSymbol = process.platform === 'win32' ? 'FAIL' : '✘'
-
         if(assertInstance.ok.lastStack) {
 
           NodeSpringUtil.log(clc.red('  ' + clc.red.bold(failedSymbol), method))
@@ -96,7 +95,15 @@ export function TestClass(testClass) {
       }
 
       // Execute real method
-      testClassObj[method](assertInstance)
+      try {
+        testClassObj[method](assertInstance)
+      } catch(err) {
+        NodeSpringUtil.log(clc.red('  ' + clc.red.bold(failedSymbol), method))
+        NodeSpringUtil.log(clc.red('   ', err), '\n')
+
+        methodStatus.failed.push(method)
+        resolve()
+      }
     })
 
     promises.push(promise)
@@ -108,9 +115,9 @@ export function TestClass(testClass) {
     let timeStr = t.timers[className].parse(t.timers[className].duration())
 
     if(methodStatus.failed.length > 0)
-      NodeSpringUtil.log(' ', clc.red(methodStatus.failed.length, 'of', testMethods.length, 'tests failed'))
+      NodeSpringUtil.log(' ', clc.red(methodStatus.failed.length, 'of', testMethods.length, 'tests failed for ' + clc.red.bold(className)))
     else
-      NodeSpringUtil.log(' ', clc.blue('All tests have passed!'))
+      NodeSpringUtil.log(' ', clc.blue('All tests for ' + clc.blue.bold(className) + ' have passed!'))
 
     NodeSpringUtil.log(clc.blue.bold('  Time:'), clc.yellow(timeStr), '\n')
   })
