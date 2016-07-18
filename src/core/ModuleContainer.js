@@ -123,7 +123,7 @@ export default class ModuleContainer {
                 handleResponse(data)
               })
               .catch((err) => {
-                handleResponse([])
+                handleResponse(err)
               })
           } else {
             handleResponse(value)
