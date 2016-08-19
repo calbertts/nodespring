@@ -67,8 +67,9 @@ export default class ExpressApp extends NodeSpringApp {
 
     if(this.config.https) {
       let options = {
-        key: fs.readFileSync(this.config.https.key),
-        cert: fs.readFileSync(this.config.https.cert)
+        key: this.config.https.key,
+        cert: this.config.https.cert,
+        ca: this.config.https.ca
       }
 
       this.server = https.createServer(options, this.expressApp)
