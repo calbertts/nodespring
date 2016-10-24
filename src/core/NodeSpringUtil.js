@@ -78,7 +78,7 @@ export default class NodeSpringUtil {
    */
   static throwNodeSpringException(exception) {
 
-    if(typeof exception.stack === 'string') {
+    if(exception && typeof exception.stack === 'string') {
       console.error('\n', exception.stack)
     }
 

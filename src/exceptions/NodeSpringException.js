@@ -17,7 +17,7 @@ function NodeSpringException(message, stackStartFunction, stackOffset, stackLimi
     Error.prepareStackTrace = (err, stack) => {
       let stack2 = stack.slice(stackOffset, stackLimit || stack.length)
 
-      if(global.NodeSpringConfig.printExceptions) {
+      if(global.NodeSpringConfig && global.NodeSpringConfig.printExceptions) {
         console.error('\n', this.name, message)
         stack2.forEach((frame) => {
           console.error('    at %s (%s:%d:%d)'
