@@ -1,6 +1,6 @@
 {
   "name": "nodespring",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "Dependency Injection and Unit Testing for NodeJS using Javascript decorators",
   "main": "index.js",
   "dependencies": {
@@ -26,7 +26,7 @@
     "test": "babel-node tests/TestUtil.js runScenarios"
   },
   "engines": {
-    "node": ">5.0.0"
+    "node": ">4.6.0"
   },
   "engineStrict": "true",
   "author": "calbertts (calbertts@gmail.com)",
